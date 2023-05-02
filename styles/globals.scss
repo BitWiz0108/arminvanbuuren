@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-transparent: #00000000;
+  --color-background: #24292d;
+  --color-primary: #ffffff;
+  --color-secondary: #888888;
+  --color-third: #21292d;
+  --color-active-primary: #0f2680;
+  --color-active-secondary: #1b1c1d;
+  --color-blue-primary: #0052e4;
+  --color-blue-secondary: #0096ff;
+  --color-error: #c52477;
+  --color-redprimary: #ff0000;
+}
+
+@font-face {
+  font-family: "Roboto";
+  src: url("/fonts/Roboto/Roboto-Regular.ttf") format("truetype");
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  scroll-behavior: smooth;
+  font-family: Roboto, sans-serif;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background: var(--color-third);
+  color: var(--color-primary);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--color-third);
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-blue-primary);
+  border-radius: 10px;
+}
+
+::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  border: 1px solid var(--color-primary);
+  border-radius: 6px;
+  -webkit-text-fill-color: var(--color-primary);
+  -webkit-box-shadow: 0 0 0px 1000px var(--color-background) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.ql-toolbar,
+.ql-container {
+  border-color: #3e454d !important;
+  background: #24292d !important;
+}
+
+.ql-toolbar {
+  border-top-left-radius: 0.5rem !important;
+  border-top-right-radius: 0.5rem !important;
+}
+
+.ql-container {
+  border-bottom-left-radius: 0.5rem !important;
+  border-bottom-right-radius: 0.5rem !important;
+}
+
+.ql-editor::before {
+  color: #888888 !important;
+  font-style: normal !important;
+}
+
+.react-calendar {
+  background: var(--color-background) !important;
+}
+
+.react-daterange-picker__wrapper {
+  border: none !important;
+}
+
+.loading {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 50;
+  width: 100vw;
+  height: 100vh;
+  backdrop-filter: blur(5px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
