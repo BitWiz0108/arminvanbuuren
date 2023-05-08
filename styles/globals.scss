@@ -117,6 +117,10 @@ select:-webkit-autofill:focus {
   border: none !important;
 }
 
+.react-daterange-picker__button svg {
+  stroke: white !important;
+}
+
 .loading {
   position: fixed;
   left: 0;
