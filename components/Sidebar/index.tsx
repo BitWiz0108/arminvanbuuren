@@ -19,6 +19,7 @@ import Home from "@/components/Icons/Home";
 import User from "@/components/Icons/User";
 import Subscription from "@/components/Icons/Subscription";
 import Info from "@/components/Icons/Info";
+import Payment from "@/components/Icons/Payment";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 import { useSizeValues } from "@/contexts/contextSize";
@@ -86,11 +87,11 @@ const Sidebar = ({ visible, setVisible }: Props) => {
           </div>
 
           <ButtonSidebar
-            active={router.pathname == "/"}
+            active={router.pathname == "/home"}
             collapsed={isSidebarCollapsed}
             icon={<Home width={26} height={26} />}
             label="Home"
-            onClick={() => goToLink("/")}
+            onClick={() => goToLink("/home")}
           />
           <ButtonSidebar
             active={router.pathname == "/music"}
@@ -156,11 +157,18 @@ const Sidebar = ({ visible, setVisible }: Props) => {
             onClick={() => goToLink("/emailtemplate")}
           />
           <ButtonSidebar
-            active={router.pathname == "/pages"}
+            active={router.pathname == "/payment"}
+            collapsed={isSidebarCollapsed}
+            icon={<Payment width={24} height={24} />}
+            label="Payment"
+            onClick={() => goToLink("/payment")}
+          />
+          <ButtonSidebar
+            active={router.pathname == "/fan-pages"}
             collapsed={isSidebarCollapsed}
             icon={<Info width={24} height={24} />}
             label="Fan Pages"
-            onClick={() => goToLink("/pages")}
+            onClick={() => goToLink("/fan-pages")}
           />
 
           <div
@@ -174,7 +182,7 @@ const Sidebar = ({ visible, setVisible }: Props) => {
                 className="text-primary text-lg text-center hover:underline cursor-pointer"
                 onClick={() => {
                   signOut();
-                  router.push("/signin");
+                  router.push("/");
                 }}
               >
                 Logout

@@ -8,7 +8,8 @@ export const AWS_BUCKET_NAME = process.env.NEXT_PUBLIC_AWS_BUCKET_NAME!;
 
 export const ASSET_TTL = 3600;
 
-export const DATETIME_FORMAT = "DD MMM YYYY hh:mm:ss A";
+// export const DATETIME_FORMAT = "MMM DD YYYY hh:mm:ss A";
+export const DATETIME_FORMAT = "MMM DD YYYY";
 export const US_DATETIME_FORMAT = "MMM dd, yyyy";
 export const DATE_FORMAT = "YYYY-MM-DD";
 
@@ -93,6 +94,13 @@ export enum BEST_SELLING_TYPE {
   DAILY = "DAILY",
   WEEKLY = "WEEKLY",
   MONTHLY = "MONTHLY",
+}
+
+export enum IMAGE_SIZE {
+  SQUARE = "SQUARE",
+  WIDE = "WIDE",
+  TALL = "TALL",
+  WIDEANDTALL = "WIDEANDTALL",
 }
 
 export const IMAGE_MD_BLUR_DATA_URL =

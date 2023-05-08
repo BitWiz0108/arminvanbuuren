@@ -16,7 +16,6 @@ import useTermsOfService from "@/hooks/useTermsOfService";
 import useAbout from "@/hooks/useAbout";
 import useArtist from "@/hooks/useArtist";
 
-import { DEFAULT_HOMEPAGE } from "@/interfaces/IHomepage";
 import { DEFAULT_TERMSOFSERVICE } from "@/interfaces/ITermsOfService";
 
 const TextAreaInput = dynamic(() => import("@/components/TextAreaInput"), {
@@ -45,12 +44,6 @@ export default function FanClub() {
   } = useTermsOfService();
 
   const [tab, setTab] = useState<FANCLUB_TAB>(FANCLUB_TAB.HOME);
-  const [youtubeVideoUrl, setYoutubeVideoUrl] = useState<string>(
-    DEFAULT_HOMEPAGE.youtubeVideoUrl
-  );
-  const [youtubeVideoTitle, setYoutubeVideoTitle] = useState<string>(
-    DEFAULT_HOMEPAGE.youtubeTitle
-  );
   const [videoBackgroundFile, setVideoBackgroundFile] = useState<File | null>(
     null
   );
@@ -63,30 +56,18 @@ export default function FanClub() {
   const fetchHomeContentData = () => {
     fetchHomeContent().then((data) => {
       if (data) {
-        setYoutubeVideoTitle(data.youtubeTitle);
-        setYoutubeVideoUrl(data.youtubeVideoUrl);
       }
     });
   };
 
   const onSaveHomeContent = () => {
-    if (!youtubeVideoTitle) {
-      toast.warn("Please enter youtube URL.");
+    if (!videoBackgroundFile) {
+      toast.warn("Please select video file.");
       return;
     }
-    if (!youtubeVideoTitle) {
-      toast.warn("Please enter youtube video title.");
-      return;
-    }
-    updateHomeContent(
-      youtubeVideoTitle,
-      youtubeVideoUrl,
-      videoBackgroundFile
-    ).then((data) => {
-      if (data) {
-        setYoutubeVideoTitle(data.youtubeTitle);
-        setYoutubeVideoUrl(data.youtubeVideoUrl);
 
+    updateHomeContent(videoBackgroundFile).then((data) => {
+      if (data) {
         toast.success("Successfully saved!");
       }
     });
@@ -175,24 +156,6 @@ export default function FanClub() {
     <div className="relative w-full flex flex-col justify-start items-center p-5">
       <div className="w-full lg:w-2/3 p-5 ">
         <div className="w-full flex flex-col p-5 bg-[#2f363e] rounded-lg">
-          <div className="w-full flex flex-col md:flex-row justify-start items-center space-x-0 md:space-x-2">
-            <TextInput
-              sname="Youtube Video URL"
-              label=""
-              placeholder={DEFAULT_HOMEPAGE.youtubeVideoUrl}
-              type="text"
-              value={youtubeVideoUrl}
-              setValue={setYoutubeVideoUrl}
-            />
-            <TextInput
-              sname="Youtube Video Title"
-              label=""
-              placeholder="Add your Youtube video title"
-              type="text"
-              value={youtubeVideoTitle}
-              setValue={setYoutubeVideoTitle}
-            />
-          </div>
           <ButtonUpload
             sname="Background video"
             label=""

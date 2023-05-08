@@ -4,6 +4,7 @@ import moment from "moment";
 import PaginationButtons from "@/components/PaginationButtons/index";
 import Edit from "@/components/Icons/Edit";
 import Delete from "@/components/Icons/Delete";
+import Comment from "@/components/Icons/Comment";
 
 import {
   DATETIME_FORMAT,
@@ -16,6 +17,7 @@ import { IPost } from "@/interfaces/IPost";
 type Props = {
   posts: Array<IPost>;
   updatePost: Function;
+  replyPost: Function;
   deletePost: Function;
   totalCount: number;
   page: number;
@@ -25,6 +27,7 @@ type Props = {
 const PostTable = ({
   posts,
   updatePost,
+  replyPost,
   deletePost,
   totalCount,
   page,
@@ -36,7 +39,7 @@ const PostTable = ({
         <div className="w-[20%] min-w-[100px]">Image</div>
         <div className="w-[75%] lg:w-[50%]">Title</div>
         <div className="w-[25%] hidden md:flex">Created At</div>
-        <div className="w-[5%] min-w-[60px]">Action</div>
+        <div className="w-[5%] min-w-[100px]">Action</div>
       </div>
       {posts.map((value, index) => {
         return (
@@ -59,7 +62,13 @@ const PostTable = ({
             <div className="w-[25%] hidden md:flex truncate">
               {moment(value.createdAt).format(DATETIME_FORMAT)}
             </div>
-            <div className="w-[5%] min-w-[60px] flex justify-center items-center space-x-5">
+            <div className="w-[5%] min-w-[100px] flex justify-center items-center space-x-5">
+              <Comment
+                width={24}
+                height={24}
+                className="text-primary hover:text-blueSecondary cursor-pointer transition-all duration-300"
+                onClick={() => replyPost(value.id)}
+              />
               <Edit
                 width={24}
                 height={24}

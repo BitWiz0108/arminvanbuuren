@@ -63,6 +63,7 @@ const useArtist = () => {
     website: string,
     description: string,
     address: string,
+    mobile: string,
     bannerImageFile: File | null,
     avatarImageFile: File | null,
     facebook: string,
@@ -92,6 +93,7 @@ const useArtist = () => {
     formData.append("website", website.toString());
     formData.append("description", description.toString());
     formData.append("address", address.toString());
+    formData.append("mobile", mobile.toString());
 
     formData.append("facebook", facebook.toString());
     formData.append("twitter", twitter.toString());
@@ -158,8 +160,6 @@ const useArtist = () => {
   };
 
   const updateHomeContent = async (
-    youtubeVideoTitle: string,
-    youtubeVideoURL: string,
     backgroundVideoFile: File | null
   ) => {
     setIsLoading(true);
@@ -167,9 +167,6 @@ const useArtist = () => {
 
     const formData = new FormData();
     formData.append("backgroundVideoFile", backgroundVideoFile ?? nullFile);
-    formData.append("youtubeVideoUrl", youtubeVideoURL);
-    formData.append("youtubeTitle", youtubeVideoTitle);
-
     const response = await fetch(`${API_BASE_URL}/${API_VERSION}/admin/home`, {
       method: "PUT",
       headers: {

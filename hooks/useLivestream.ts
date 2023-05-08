@@ -6,11 +6,13 @@ import { useAuthValues } from "@/contexts/contextAuth";
 import {
   API_BASE_URL,
   API_VERSION,
+  DEFAULT_AVATAR_IMAGE,
   DEFAULT_COVER_IMAGE,
 } from "@/libs/constants";
+import { getAWSSignedURL } from "@/libs/aws";
 
 import { IStream } from "@/interfaces/IStream";
-import { getAWSSignedURL } from "@/libs/aws";
+import { IComment } from "@/interfaces/IComment";
 
 const useLivestream = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -216,12 +218,113 @@ const useLivestream = () => {
     return false;
   };
 
+  const fetchComments = async (
+    livestreamId: number | null,
+    page: number,
+    limit: number = 30
+  ) => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `${API_BASE_URL}/${API_VERSION}/live-stream/comments`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          id: livestreamId,
+          page,
+          limit,
+        }),
+      }
+    );
+    if (response.ok) {
+      const data = await response.json();
+      const comments = data.comments as Array<IComment>;
+      const avatarImagePromises = comments.map((comment) => {
+        return getAWSSignedURL(
+          comment.author.avatarImage,
+          DEFAULT_AVATAR_IMAGE
+        );
+      });
+      const avatarImages = await Promise.all(avatarImagePromises);
+      comments.forEach((comment, index) => {
+        comment.author.avatarImage = avatarImages[index];
+      });
+      const pages = Number(data.pages);
+
+      setIsLoading(false);
+      return { comments, pages };
+    } else {
+      setIsLoading(false);
+    }
+    return { comments: [], pages: 0 };
+  };
+
+  const writeComment = async (livestreamId: number | null, content: string) => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `${API_BASE_URL}/${API_VERSION}/live-stream/comment`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ livestreamId, userId: user.id, content }),
+      }
+    );
+    if (response.ok) {
+      const data = await response.json();
+      const comment = data as IComment;
+      comment.author.avatarImage = await getAWSSignedURL(
+        comment.author.avatarImage,
+        DEFAULT_AVATAR_IMAGE
+      );
+
+      setIsLoading(false);
+      return comment;
+    } else {
+      setIsLoading(false);
+    }
+    return null;
+  };
+
+  const deleteComment = async (id: number) => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `${API_BASE_URL}/${API_VERSION}/admin/live-stream/delete-comments`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ ids: [id] }),
+      }
+    );
+    if (response.ok) {
+      setIsLoading(false);
+      return true;
+    } else {
+      setIsLoading(false);
+    }
+    return false;
+  };
+
   return {
     isLoading,
     fetchLivestream,
     createLivestream,
     updateLivestream,
     deleteLivestream,
+    fetchComments,
+    writeComment,
+    deleteComment,
   };
 };
 

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-import { API_BASE_URL, API_VERSION, TAG_ACCESS_TOKEN } from "@/libs/constants";
+import { API_BASE_URL, API_VERSION, DEFAULT_AVATAR_IMAGE, TAG_ACCESS_TOKEN } from "@/libs/constants";
 
 import { IUser } from "@/interfaces/IUser";
 import { DEFAULT_USER } from "@/interfaces/IUser";
+
+import { getAWSSignedURL } from "@/libs/aws";
 
 const useAuth = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -49,7 +51,10 @@ const useAuth = () => {
         setIsSignedIn(false);
         return false;
       }
-
+      data.user.avatarImage = await getAWSSignedURL(
+        data.user.avatarImage,
+        DEFAULT_AVATAR_IMAGE
+      );
       setUser(data.user as IUser);
       setIsSignedIn(true);
 
@@ -116,6 +121,10 @@ const useAuth = () => {
         window.localStorage.setItem(TAG_ACCESS_TOKEN, data.accessToken);
 
         setAcessToken(data.accessToken);
+        data.user.avatarImage = await getAWSSignedURL(
+          data.user.avatarImage,
+          DEFAULT_AVATAR_IMAGE
+        );
         setUser(data.user);
 
         setIsSignedIn(true);

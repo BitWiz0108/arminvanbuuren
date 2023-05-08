@@ -11,9 +11,11 @@ export const SizeContext = createContext({
   isMobile: false,
   isTablet: false,
   isSidebarCollapsed: false,
-  setIsSidebarCollapsed: (flag: boolean) => {},
+  setIsSidebarCollapsed: (flag: boolean) => { },
   isSidebarVisible: false,
-  setIsSidebarVisible: (flag: boolean) => {},
+  setIsSidebarVisible: (flag: boolean) => { },
+  isTopbarVisible: false,
+  setIsTopbarVisible: (flag: boolean) => { },
 });
 
 export const SizeProvider = ({ children }: { children: ReactNode }) => {
@@ -28,6 +30,8 @@ export const SizeProvider = ({ children }: { children: ReactNode }) => {
     setIsSidebarCollapsed,
     isSidebarVisible,
     setIsSidebarVisible,
+    isTopbarVisible,
+    setIsTopbarVisible,
   } = useDeviceSize();
 
   return (
@@ -43,6 +47,8 @@ export const SizeProvider = ({ children }: { children: ReactNode }) => {
         setIsSidebarCollapsed,
         isSidebarVisible,
         setIsSidebarVisible,
+        isTopbarVisible,
+        setIsTopbarVisible,
       }}
     >
       {children}

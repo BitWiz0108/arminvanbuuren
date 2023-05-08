@@ -11,6 +11,7 @@ export interface IArtist {
   website: string;
   description: string;
   address: string;
+  mobile: string;
   bannerImage: string;
   avatarImage: string;
   facebook: string;
@@ -32,6 +33,7 @@ export const DEFAULT_ARTIST = {
   website: "",
   description: "",
   address: "",
+  mobile: "",
   bannerImage: DEFAULT_BANNER_IMAGE,
   avatarImage: DEFAULT_AVATAR_IMAGE,
   facebook: "",

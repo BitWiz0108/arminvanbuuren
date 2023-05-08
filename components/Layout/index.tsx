@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 
 import Sidebar from "@/components/Sidebar";
+import Topbar from "@/components/Topbar";
 import Menu from "@/components/Icons/Menu";
 
 import { useSizeValues } from "@/contexts/contextSize";
@@ -18,7 +19,7 @@ const Layout = ({ children }: LayoutProps) => {
   const { isSignedIn } = useAuthValues();
   const [firstLoading, setFirstLoading] = useState<boolean>(true);
 
-  const { width, contentWidth, isSidebarVisible, setIsSidebarVisible } =
+  const { width, contentWidth, isSidebarVisible, setIsSidebarVisible, isTopbarVisible, setIsTopbarVisible } =
     useSizeValues();
 
   useEffect(() => {
@@ -38,7 +39,7 @@ const Layout = ({ children }: LayoutProps) => {
 
     if (!isSignedIn) {
       toast.warn("Please sign in.");
-      router.push("/signin");
+      router.push("/");
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -70,10 +71,12 @@ const Layout = ({ children }: LayoutProps) => {
             }}
           />
         </div>
+
+        <Topbar visible={isTopbarVisible} setVisible={setIsTopbarVisible} />
         <Sidebar visible={isSidebarVisible} setVisible={setIsSidebarVisible} />
 
         <div
-          className="flex flex-row h-full border-l border-x-gray-700 justify-start items-center overflow-hidden"
+          className="flex flex-row h-full border-l border-x-gray-700 justify-start mt-12 items-center overflow-hidden"
           style={{
             width: `${contentWidth}px`,
           }}

@@ -15,6 +15,7 @@ const useDeviceSize = () => {
   const [isTablet, setIsTablet] = useState<boolean>(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [isSidebarVisible, setSidebarVisible] = useState<boolean>(false);
+  const [isTopbarVisible, setTopbarVisible] = useState<boolean>(false);
 
   const handleWindowSizeChange = () => {
     setWidth(window.innerWidth);
@@ -29,6 +30,10 @@ const useDeviceSize = () => {
 
   const setIsSidebarVisible = (flag: boolean) => {
     setSidebarVisible(flag);
+  };
+
+  const setIsTopbarVisible = (flag: boolean) => {
+    setTopbarVisible(flag);
   };
 
   useEffect(() => {
@@ -85,6 +90,8 @@ const useDeviceSize = () => {
     setIsSidebarCollapsed,
     isSidebarVisible,
     setIsSidebarVisible,
+    isTopbarVisible,
+    setIsTopbarVisible,
   };
 };
 

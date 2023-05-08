@@ -5,6 +5,7 @@ import moment from "moment";
 import PaginationButtons from "@/components/PaginationButtons";
 import Edit from "@/components/Icons/Edit";
 import Delete from "@/components/Icons/Delete";
+import Comment from "@/components/Icons/Comment";
 
 import {
   DATETIME_FORMAT,
@@ -17,6 +18,7 @@ import { IStream } from "@/interfaces/IStream";
 type Props = {
   livestreams: Array<IStream>;
   updateLivestream: Function;
+  commentLivestream: Function;
   deleteLivestream: Function;
   totalCount: number;
   page: number;
@@ -26,6 +28,7 @@ type Props = {
 const LivestreamTable = ({
   livestreams,
   updateLivestream,
+  commentLivestream,
   deleteLivestream,
   totalCount,
   page,
@@ -38,7 +41,7 @@ const LivestreamTable = ({
         <label className="w-[50%] lg:w-[30%]"> Title</label>
         <label className="w-[20%] hidden lg:flex"> Artist</label>
         <label className="w-[25%] hidden lg:flex"> Release Date</label>
-        <label className="w-[5%] min-w-[60px]"> Action</label>
+        <label className="w-[5%] min-w-[100px]"> Action</label>
       </div>
       {livestreams.map((value, index) => {
         return (
@@ -64,7 +67,13 @@ const LivestreamTable = ({
             <div className="w-[25%] hidden lg:flex truncate">
               {moment(value.releaseDate).format(DATETIME_FORMAT)}
             </div>
-            <div className="w-[5%] min-w-[60px] flex justify-center items-center space-x-5">
+            <div className="w-[5%] min-w-[100px] flex justify-center items-center space-x-5">
+              <Comment
+                width={24}
+                height={24}
+                className="text-primary hover:text-blueSecondary cursor-pointer transition-all duration-300"
+                onClick={() => commentLivestream(value.id)}
+              />
               <Edit
                 width={24}
                 height={24}
