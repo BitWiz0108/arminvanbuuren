@@ -100,7 +100,7 @@ const Topbar = ({ visible, setVisible }: Props) => {
               className="w-full p-2 flex justify-center md:justify-start items-center space-x-0 md:space-x-2 text-primary text-sm hover:bg-blueSecondary transition-all duration-300 cursor-pointer select-none"
               onClick={() => {
                 signOut();
-                router.push("/signin");
+                router.push("/");
                 setIsMenuVisible(false);
               }}
             >
