@@ -27,23 +27,13 @@ import {
 import { checkContainsSpecialCharacters } from "@/libs/utils";
 
 import { IUser } from "@/interfaces/IUser";
-import { DEFAULT_COUNTRY, ICountry } from "@/interfaces/ICountry";
-import { DEFAULT_STATE, IState } from "@/interfaces/IState";
-import { DEFAULT_CITY, ICity } from "@/interfaces/ICity";
 
 export default function User() {
   const avatarImageRef = useRef(null);
 
   const { isSignedIn } = useAuthValues();
-  const {
-    isLoading,
-    fetchUsers,
-    updateUser,
-    deleteUser,
-    fetchCountries,
-    fetchStates,
-    fetchCities,
-  } = useUser();
+  const { isLoading, fetchUsers, updateUser, deleteUser, fetchLocation } =
+    useUser();
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [users, setUsers] = useState<Array<IUser>>([]);
@@ -55,18 +45,15 @@ export default function User() {
   const [gender, setGender] = useState<GENDER>(GENDER.MALE);
   const [dob, setDob] = useState<string>(moment().format(DATETIME_FORMAT));
   const [address, setAddress] = useState<string>("");
-  const [country, setCountry] = useState<ICountry>(DEFAULT_COUNTRY);
-  const [state, setState] = useState<IState>(DEFAULT_STATE);
-  const [city, setCity] = useState<ICity>(DEFAULT_CITY);
   const [zipcode, setZipcode] = useState<string>("");
+  const [country, setCountry] = useState<string>("");
+  const [state, setState] = useState<string>("");
+  const [city, setCity] = useState<string>("");
   const [avatarImagePreview, setAvatarImagePreview] =
     useState<string>(DEFAULT_AVATAR_IMAGE);
   const [avatarImageFile, setAvatarImageFile] = useState<File | null>(null);
   const [status, setStatus] = useState<boolean>(false);
   const [isAvatarImageHover, setIsAvatarImageHover] = useState<boolean>(false);
-  const [countries, setCountries] = useState<Array<ICountry>>([]);
-  const [states, setStates] = useState<Array<IState>>([]);
-  const [cities, setCities] = useState<Array<ICity>>([]);
   const [page, setPage] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -79,9 +66,6 @@ export default function User() {
     setGender(GENDER.MALE);
     setDob(moment().format(DATETIME_FORMAT));
     setAddress("");
-    setCountry(DEFAULT_COUNTRY);
-    setState(DEFAULT_STATE);
-    setCity(DEFAULT_CITY);
     setZipcode("");
     setAvatarImagePreview(DEFAULT_AVATAR_IMAGE);
     setAvatarImageFile(null);
@@ -116,9 +100,9 @@ export default function User() {
         dob,
         status,
         address,
-        country.id,
-        state.id,
-        city.id,
+        country,
+        state,
+        city,
         zipcode
       ).then((value) => {
         if (value) {
@@ -145,24 +129,10 @@ export default function User() {
   useEffect(() => {
     if (isSignedIn) {
       fetchUserList();
-      fetchCountries().then((value) => {
-        setCountries(value);
-      });
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSignedIn, page]);
-
-  useEffect(() => {
-    fetchStates(country.id).then((value) => {
-      setStates(value);
-    });
-    fetchCities(state.id).then((value) => {
-      setCities(value);
-    });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [country, state]);
 
   const tableView = (
     <div className="w-full">
@@ -192,9 +162,9 @@ export default function User() {
               setGender(users[index].gender ?? GENDER.MALE);
               setDob(users[index].dob ?? moment().format(DATETIME_FORMAT));
               setAddress(users[index].address ?? "");
-              setCountry(users[index].country ?? DEFAULT_COUNTRY);
-              setState(users[index].state ?? DEFAULT_STATE);
-              setCity(users[index].city ?? DEFAULT_CITY);
+              setCountry(users[index].country ?? "");
+              setState(users[index].state ?? "");
+              setCity(users[index].city ?? "");
               setZipcode(users[index].zipcode ?? "");
               setAvatarImagePreview(
                 users[index].avatarImage ?? DEFAULT_AVATAR_IMAGE
@@ -340,71 +310,26 @@ export default function User() {
           </div>
 
           <div className="w-full flex flex-col xl:flex-row space-x-0 xl:space-x-5">
-            <Select
-              label="Country"
-              defaultValue={""}
-              defaultLabel="Country"
-              options={countries.map((value) => {
-                return {
-                  label: value.iso,
-                  value: value.id ? value.id.toString() : "",
-                };
-              })}
-              value={country.id ?? ""}
-              setValue={(value: string) => {
-                const id = Number(value);
-                const index = countries.findIndex((country) => {
-                  return country.id == id;
-                });
-                if (index >= 0) {
-                  setCountry(countries[index]);
+            <TextInput
+              sname="Zip code"
+              label=""
+              placeholder="Zip code"
+              type="text"
+              value={zipcode}
+              setValue={(zipcode: string) => {
+                setZipcode(zipcode);
+
+                if (zipcode) {
+                  fetchLocation(zipcode).then((value) => {
+                    if (value) {
+                      setCountry(value.country);
+                      setState(value.state);
+                      setCity(value.city);
+                    }
+                  });
                 }
               }}
             />
-            <Select
-              label="State"
-              defaultValue={""}
-              defaultLabel="State"
-              options={states.map((value) => {
-                return {
-                  label: value.name,
-                  value: value.id ? value.id.toString() : "",
-                };
-              })}
-              value={state.id ?? ""}
-              setValue={(value: string) => {
-                const id = Number(value);
-                const index = states.findIndex((state) => {
-                  return state.id == id;
-                });
-                if (index >= 0) {
-                  setState(states[index]);
-                }
-              }}
-            />
-            <Select
-              label="City"
-              defaultValue={""}
-              defaultLabel="City"
-              options={cities.map((value) => {
-                return {
-                  label: value.name,
-                  value: value.id ? value.id.toString() : "",
-                };
-              })}
-              value={city.id ?? ""}
-              setValue={(value: string) => {
-                const id = Number(value);
-                const index = cities.findIndex((city) => {
-                  return city.id == id;
-                });
-                if (index >= 0) {
-                  setCity(cities[index]);
-                }
-              }}
-            />
-          </div>
-          <div className="w-full flex flex-col xl:flex-row space-x-0 xl:space-x-5">
             <TextInput
               sname="Address"
               label=""
@@ -413,13 +338,32 @@ export default function User() {
               value={address}
               setValue={setAddress}
             />
+          </div>
+
+          <div className="w-full flex flex-col xl:flex-row space-x-0 xl:space-x-5">
             <TextInput
-              sname="Zip code"
+              sname="Country"
               label=""
-              placeholder="Zip code"
+              placeholder="Country"
               type="text"
-              value={zipcode}
-              setValue={setZipcode}
+              value={country}
+              setValue={setCountry}
+            />
+            <TextInput
+              sname="State"
+              label=""
+              placeholder="State"
+              type="text"
+              value={state}
+              setValue={setState}
+            />
+            <TextInput
+              sname="City"
+              label=""
+              placeholder="City"
+              type="text"
+              value={city}
+              setValue={setCity}
             />
           </div>
 

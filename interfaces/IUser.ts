@@ -1,9 +1,5 @@
 import { DEFAULT_AVATAR_IMAGE, GENDER } from "@/libs/constants";
 
-import { DEFAULT_COUNTRY, ICountry } from "@/interfaces/ICountry";
-import { DEFAULT_STATE, IState } from "@/interfaces/IState";
-import { DEFAULT_CITY, ICity } from "@/interfaces/ICity";
-
 export interface IUser {
   id: number | null;
   username: string;
@@ -22,9 +18,9 @@ export interface IUser {
   status: boolean | null;
   dob: string;
   address: string;
-  country: ICountry;
-  state: IState;
-  city: ICity;
+  country: string;
+  state: string;
+  city: string;
   zipcode: string;
   createdAt: string;
 }
@@ -47,9 +43,9 @@ export const DEFAULT_USER = {
   status: false,
   dob: "1960-01-01",
   address: "",
-  country: DEFAULT_COUNTRY,
-  state: DEFAULT_STATE,
-  city: DEFAULT_CITY,
+  country: "",
+  state: "",
+  city: "",
   zipcode: "",
   createdAt: "",
 } as IUser;

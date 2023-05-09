@@ -19,8 +19,14 @@ const Layout = ({ children }: LayoutProps) => {
   const { isSignedIn } = useAuthValues();
   const [firstLoading, setFirstLoading] = useState<boolean>(true);
 
-  const { width, contentWidth, isSidebarVisible, setIsSidebarVisible, isTopbarVisible, setIsTopbarVisible } =
-    useSizeValues();
+  const {
+    width,
+    contentWidth,
+    isSidebarVisible,
+    setIsSidebarVisible,
+    isTopbarVisible,
+    setIsTopbarVisible,
+  } = useSizeValues();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -76,7 +82,7 @@ const Layout = ({ children }: LayoutProps) => {
         <Sidebar visible={isSidebarVisible} setVisible={setIsSidebarVisible} />
 
         <div
-          className="flex flex-row h-full border-l border-x-gray-700 justify-start mt-12 items-center overflow-hidden"
+          className="flex flex-row h-full border-l border-x-gray-700 justify-start pt-12 items-center overflow-hidden"
           style={{
             width: `${contentWidth}px`,
           }}

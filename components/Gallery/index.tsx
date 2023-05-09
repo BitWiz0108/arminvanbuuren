@@ -63,7 +63,7 @@ const GalleryView = () => {
           );
         })}
         <div
-          className="col-span-1 w-full h-full min-h-[200px] flex flex-row justify-center items-center outline-dashed outline-2 hover:outline-blueSecondary hover:text-blueSecondary transition-all duration-300 cursor-pointer rounded-md"
+          className="col-span-1 w-full h-[280px] min-h-[280px] max-h-[280px] flex flex-row justify-center items-center outline-dashed outline-2 hover:outline-blueSecondary hover:text-blueSecondary transition-all duration-300 cursor-pointer rounded-md"
           onClick={() => {
             setImage(null);
             setIsAddModalVisible(true);

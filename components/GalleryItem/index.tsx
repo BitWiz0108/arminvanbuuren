@@ -33,13 +33,13 @@ const GalleryItem = ({ index, image, onDelete, onEdit }: Props) => {
 
   return (
     <div
-      className="relative w-full h-full overflow-hidden rounded-md"
+      className="relative w-full h-[280px] max-h-[280px] overflow-hidden rounded-md"
       onMouseEnter={() => onHover()}
       onMouseLeave={() => onOut()}
     >
       <Image
         className={twMerge(
-          "w-full h-full object-cover transition-all duration-300",
+          "w-full h-[280px] max-h-[280px] object-cover transition-all duration-300",
           hovered ? "scale-110" : "scale-100"
         )}
         src={image.compressedImage}
