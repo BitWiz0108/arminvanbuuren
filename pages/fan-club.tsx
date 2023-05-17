@@ -1,20 +1,22 @@
-import React, { useState, useEffect, useRef, KeyboardEvent } from "react";
+import React, { useState, useEffect, KeyboardEvent } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
 import moment from "moment";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
 import Layout from "@/components/Layout";
 import ButtonSettings from "@/components/ButtonSettings";
 import TextInput from "@/components/TextInput";
 import ButtonUpload from "@/components/ButtonUpload";
 import RadialProgress from "@/components/RadialProgress";
-import Edit from "@/components/Icons/Edit";
 import X from "@/components/Icons/X";
 import Delete from "@/components/Icons/Delete";
 import Reply from "@/components/Icons/Reply";
 import PostTable from "@/components/PostTable";
 import DateInput from "@/components/DateInput";
+import RadioBoxGroup from "@/components/RadioBoxGroup";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
@@ -23,10 +25,8 @@ import useArtist from "@/hooks/useArtist";
 
 import {
   DATETIME_FORMAT,
-  DEFAULT_ARTIST_IMAGE,
   DEFAULT_AVATAR_IMAGE,
-  DEFAULT_BANNER_IMAGE,
-  IMAGE_MD_BLUR_DATA_URL,
+  FILE_TYPE,
   IMAGE_SM_BLUR_DATA_URL,
 } from "@/libs/constants";
 
@@ -43,12 +43,10 @@ export enum FANCLUB_TAB {
 }
 
 export default function FanClub() {
-  const bannerImageRef = useRef(null);
-  const avatarImageRef = useRef(null);
-
   const { isSignedIn, user } = useAuthValues();
   const {
     isLoading: isWorkingPost,
+    loadingProgress: postProgress,
     fetchPost,
     fetchPostById,
     createPost,
@@ -58,13 +56,31 @@ export default function FanClub() {
     createReply,
     deleteReply,
   } = usePost();
-  const { isLoading: isWorkingArtist, fetchArtist, updateArtist } = useArtist();
+  const {
+    isLoading: isWorkingArtist,
+    loadingProgress: artistProgress,
+    fetchArtist,
+    updateArtist,
+  } = useArtist();
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isDetailViewOpened, setIsDetailedViewOpened] =
     useState<boolean>(false);
   const [isReplyViewOpened, setIsReplyViewOpened] = useState<boolean>(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFileUploaded, setImageFileUploaded] = useState<string>("");
+  const [imageFileCompressed, setImageFileCompressed] = useState<File | null>(
+    null
+  );
+  const [imageFileCompressedUploaded, setImageFileCompresseduploaded] =
+    useState<string>("");
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoFileUploaded, setVideoFileUploaded] = useState<string>("");
+  const [videoFileCompressed, setVideoFileCompressed] = useState<File | null>(
+    null
+  );
+  const [videoFileCompressedUploaded, setVideoFileCompressedUploaded] =
+    useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -76,14 +92,28 @@ export default function FanClub() {
   const [replyContent, setReplyContent] = useState<string>("");
   const [repliesPage, setRepliesPage] = useState<number>(1);
   const [repliesPageCount, setRepliesPageCount] = useState<number>(1);
-  const [isBannerImageHover, setIsBannerImageHover] = useState<boolean>(false);
-  const [isAvatarImageHover, setIsAvatarImageHover] = useState<boolean>(false);
   const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
-  const [bannerImagePreview, setBannerImagePreview] =
-    useState<string>(DEFAULT_BANNER_IMAGE);
+  const [bannerImageFileUploaded, setBannerImageFileUploaded] =
+    useState<string>("");
+  const [bannerImageFileCompressed, setBannerImageFileCompressed] =
+    useState<File | null>(null);
+  const [
+    bannerImageFileCompressedUploaded,
+    setBannerImageFileCompressedUploaded,
+  ] = useState<string>("");
+  const [bannerVideoFile, setBannerVideoFile] = useState<File | null>(null);
+  const [bannerVideoFileUploaded, setBannerVideoFileUploaded] =
+    useState<string>("");
+  const [bannerVideoFileCompressed, setBannerVideoFileCompressed] =
+    useState<File | null>(null);
+  const [
+    bannerVideoFileCompressedUploaded,
+    setBannerVideoFileCompressedUploaded,
+  ] = useState<string>("");
+
   const [avatarImageFile, setAvatarImageFile] = useState<File | null>(null);
-  const [avatarImagePreview, setAvatarImagePreview] =
-    useState<string>(DEFAULT_ARTIST_IMAGE);
+  const [avatarImageFileUploaded, setAvatarImageFileUploaded] =
+    useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
@@ -100,19 +130,34 @@ export default function FanClub() {
   const [instagram, setInstagram] = useState<string>("");
   const [soundcloud, setSoundcloud] = useState<string>("");
   const [logoImageFile, setLogoImageFile] = useState<File | null>(null);
+  const [logoImageFileUploaded, setLogoImageFileUploaded] =
+    useState<string>("");
+  const [bannerType, setBannerType] = useState<FILE_TYPE>(FILE_TYPE.IMAGE);
+  const [postType, setPostType] = useState<FILE_TYPE>(FILE_TYPE.IMAGE);
+
+  const handleArtistOptionChange = (value: FILE_TYPE) => {
+    setBannerType(value);
+  };
+
+  const handlePostOptionChange = (value: FILE_TYPE) => {
+    setPostType(value);
+  };
+
+  const profileOptions = [
+    { label: "Image", value: FILE_TYPE.IMAGE },
+    { label: "Video", value: FILE_TYPE.VIDEO },
+  ];
 
   const clearFields = () => {
     setImageFile(null);
+    setImageFileCompressed(null);
+    setVideoFile(null);
+    setVideoFileCompressed(null);
     setTitle("");
     setContent("");
   };
 
   const onSaveProfile = async () => {
-    if (!username || !firstName || !lastName || !dob || !email || !address) {
-      toast.warn("Please type values correctly.");
-      return;
-    }
-
     updateArtist(
       user.id,
       username,
@@ -125,14 +170,18 @@ export default function FanClub() {
       description,
       address,
       mobile,
+      bannerType,
       bannerImageFile,
+      bannerImageFileCompressed,
+      bannerVideoFile,
+      bannerVideoFileCompressed,
       avatarImageFile,
+      logoImageFile,
       facebook,
       twitter,
       youtube,
       instagram,
-      soundcloud,
-      logoImageFile
+      soundcloud
     ).then((data) => {
       if (data) {
         setUsername(data.username);
@@ -145,9 +194,7 @@ export default function FanClub() {
         setDescription(data.description);
         setAddress(data.address);
         setMobile(data.mobile);
-        setBannerImagePreview(data.bannerImage);
         setBannerImageFile(null);
-        setAvatarImagePreview(data.avatarImage);
         setAvatarImageFile(null);
         setLogoImageFile(null);
         toast.success("Successfully updated!");
@@ -156,22 +203,44 @@ export default function FanClub() {
   };
 
   const onConfirm = async () => {
-    if ((!isEditing && !imageFile) || !title || !content) {
-      toast.warn("Please type values correctly.");
+    if (postType == FILE_TYPE.IMAGE && ((!isEditing && !imageFile) || !title)) {
+      toast.warn("Please  fill the required fields.");
+      return;
+    } else if (
+      postType == FILE_TYPE.VIDEO &&
+      ((!isEditing && !videoFile) || !title)
+    ) {
+      toast.warn("Please fill the required fields.");
       return;
     }
 
     if (isEditing) {
-      updatePost(selectedId, imageFile, title, content).then((value) => {
+      updatePost(
+        selectedId,
+        postType,
+        imageFile,
+        imageFileCompressed,
+        videoFile,
+        videoFileCompressed,
+        title,
+        content
+      ).then((value) => {
         if (value) {
           clearFields();
           fetchPosts();
-
           toast.success("Successfully updated!");
         }
       });
     } else {
-      createPost(imageFile!, title, content).then((value) => {
+      createPost(
+        postType,
+        imageFile!,
+        imageFileCompressed!,
+        videoFile!,
+        videoFileCompressed!,
+        title,
+        content
+      ).then((value) => {
         if (value) {
           clearFields();
           fetchPosts();
@@ -237,6 +306,7 @@ export default function FanClub() {
     if (isSignedIn) {
       fetchArtist(user.id).then((data) => {
         if (data) {
+          handleArtistOptionChange(data.bannerType);
           setUsername(data.username ?? "");
           setFirstName(data.firstName ?? "");
           setLastName(data.lastName ?? "");
@@ -247,16 +317,23 @@ export default function FanClub() {
           setDescription(data.description ?? "");
           setAddress(data.address ?? "");
           setMobile(data.mobile ?? "");
-          setBannerImagePreview(data.bannerImage ?? DEFAULT_BANNER_IMAGE);
           setBannerImageFile(null);
-          setAvatarImagePreview(data.avatarImage ?? DEFAULT_ARTIST_IMAGE);
+          setBannerImageFileUploaded(data.bannerImage);
+          setBannerImageFileCompressed(null);
+          setBannerImageFileUploaded(data.bannerImageCompressed);
+          setBannerVideoFile(null);
+          setBannerVideoFileUploaded(data.bannerVideo);
+          setBannerVideoFileCompressed(null);
+          setBannerVideoFileCompressedUploaded(data.bannerVideoCompressed);
           setAvatarImageFile(null);
+          setAvatarImageFileUploaded(data.avatarImage);
           setFacebook(data.facebook ?? "");
           setTwitter(data.twitter ?? "");
           setYoutube(data.youtube ?? "");
           setInstagram(data.instagram ?? "");
           setSoundcloud(data.soundcloud ?? "");
           setLogoImageFile(null);
+          setLogoImageFileUploaded(data.logoImage);
         }
       });
     }
@@ -298,9 +375,18 @@ export default function FanClub() {
             setIsEditing(true);
             const index = posts.findIndex((post) => post.id == id);
             if (index >= 0) {
+              handlePostOptionChange(posts[index].type);
               setImageFile(null);
+              setImageFileUploaded(posts[index].image);
+              setImageFileCompressed(null);
+              setImageFileCompresseduploaded(posts[index].imageCompressed);
+              setVideoFile(null);
+              setVideoFileUploaded(posts[index].video);
+              setVideoFileCompressed(null);
+              setVideoFileCompressedUploaded(posts[index].videoCompressed);
               setTitle(posts[index].title);
               setContent(posts[index].content);
+              setPostType(posts[index].type);
               setSelectedId(id);
               setIsDetailedViewOpened(true);
             }
@@ -437,7 +523,7 @@ export default function FanClub() {
         <div className="flex space-x-10 lg:space-x-20">
           <div className="w-full px-0 flex flex-col lg:flex-col">
             <TextInput
-              sname="Post Title"
+              sname="Post Title *"
               label=""
               placeholder="Enter Post Title"
               type="text"
@@ -451,14 +537,59 @@ export default function FanClub() {
               value={content}
               setValue={setContent}
             />
-            <ButtonUpload
-              sname="Image"
-              label=""
-              placeholder="Select image file"
-              accept_file="image/*"
-              setValue={setImageFile}
+            <RadioBoxGroup
+              options={profileOptions}
+              name="myRadioGroup"
+              selectedValue={postType}
+              onChange={(value) => handlePostOptionChange(value as FILE_TYPE)}
             />
-
+            {postType == FILE_TYPE.IMAGE ? (
+              <div className="w-full flex flex-col md:flex-row justify-start items-center space-x-0 md:space-x-2 mt-5">
+                <div className="w-full flex flex-col md:flex-row justify-start items-center">
+                  <ButtonUpload
+                    id="upload_high_quality_image"
+                    label="Upload High Quality Image *"
+                    file={imageFile}
+                    setFile={setImageFile}
+                    fileType={FILE_TYPE.IMAGE}
+                    uploaded={imageFileUploaded}
+                  />
+                </div>
+                <div className="w-full flex flex-col md:flex-row justify-start items-center">
+                  <ButtonUpload
+                    id="upload_low_quality_image"
+                    label="Upload Low Quality Image"
+                    file={imageFileCompressed}
+                    setFile={setImageFileCompressed}
+                    fileType={FILE_TYPE.IMAGE}
+                    uploaded={imageFileCompressedUploaded}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="w-full flex flex-col md:flex-row justify-start items-center space-x-0 md:space-x-2 mt-5">
+                <div className="w-full flex flex-col md:flex-row justify-start items-center">
+                  <ButtonUpload
+                    id="upload_high_quality_video"
+                    label="Upload High Quality Video"
+                    file={videoFile}
+                    setFile={setVideoFile}
+                    fileType={FILE_TYPE.VIDEO}
+                    uploaded={videoFileUploaded}
+                  />
+                </div>
+                <div className="w-full flex flex-col md:flex-row justify-start items-center">
+                  <ButtonUpload
+                    id="upload_low_quality_video"
+                    label="Upload Low Quality Video"
+                    file={videoFileCompressed}
+                    setFile={setVideoFileCompressed}
+                    fileType={FILE_TYPE.VIDEO}
+                    uploaded={videoFileCompressedUploaded}
+                  />
+                </div>
+              </div>
+            )}
             <div className="flex space-x-2 mt-5">
               <ButtonSettings
                 label="Cancel"
@@ -474,103 +605,54 @@ export default function FanClub() {
 
   const aboutMe = (
     <div className="relative w-full flex flex-col justify-start items-center">
-      <div
-        className="relative w-full h-[260px] overflow-hidden flex justify-center items-center cursor-pointer"
-        onMouseEnter={() => setIsBannerImageHover(true)}
-        onMouseLeave={() => setIsBannerImageHover(false)}
-        onClick={() => {
-          if (bannerImageRef) {
-            // @ts-ignore
-            bannerImageRef.current.click();
-          }
-        }}
-      >
-        <input
-          ref={bannerImageRef}
-          type="file"
-          className="hidden"
-          onChange={(e) => {
-            const files = e.target.files;
-            if (files && files.length > 0) {
-              if (files[0]) {
-                setBannerImageFile(files[0]);
-
-                const reader = new FileReader();
-                reader.onload = () => {
-                  setBannerImagePreview(reader.result as string);
-                };
-                reader.readAsDataURL(files[0]);
-              }
-            }
-          }}
-          accept="image/*"
-        />
-        <Image
-          className="w-full h-full object-cover"
-          src={bannerImagePreview ?? DEFAULT_BANNER_IMAGE}
-          width={1600}
-          height={450}
-          alt=""
-          placeholder="blur"
-          blurDataURL={IMAGE_MD_BLUR_DATA_URL}
-        />
-        {isBannerImageHover && (
-          <div className="absolute left-0 top-0 w-full h-full bg-[#00000088] flex justify-center items-center">
-            <Edit width={26} height={26} />
-          </div>
-        )}
-      </div>
-      <div className="w-full flex justify-center md:justify-start items-center -mt-16">
-        <div
-          className="relative w-32 h-32 rounded-full overflow-hidden ml-0 md:ml-10 border border-secondary cursor-pointer"
-          onMouseEnter={() => setIsAvatarImageHover(true)}
-          onMouseLeave={() => setIsAvatarImageHover(false)}
-          onClick={() => {
-            if (avatarImageRef) {
-              // @ts-ignore
-              avatarImageRef.current.click();
-            }
-          }}
-        >
-          <input
-            ref={avatarImageRef}
-            type="file"
-            className="hidden"
-            onChange={(e) => {
-              const files = e.target.files;
-              if (files && files.length > 0) {
-                if (files[0]) {
-                  setAvatarImageFile(files[0]);
-
-                  const reader = new FileReader();
-                  reader.onload = () => {
-                    setAvatarImagePreview(reader.result as string);
-                  };
-                  reader.readAsDataURL(files[0]);
-                }
-              }
-            }}
-            accept="image/*"
+      <div className="w-full lg:w-2/3 xl:w-1/2 p-5">
+        <div className="w-full flex flex-col p-5 bg-[#2f363e] rounded-lg">
+          <RadioBoxGroup
+            options={profileOptions}
+            name="myRadioGroup"
+            selectedValue={bannerType}
+            onChange={(value) => handleArtistOptionChange(value as FILE_TYPE)}
           />
-          <Image
-            className="w-full h-full object-cover"
-            src={avatarImagePreview ?? DEFAULT_ARTIST_IMAGE}
-            width={200}
-            height={200}
-            alt=""
-            placeholder="blur"
-            blurDataURL={IMAGE_SM_BLUR_DATA_URL}
-          />
-          {isAvatarImageHover && (
-            <div className="absolute left-0 top-0 w-full h-full bg-[#00000088] flex justify-center items-center">
-              <Edit width={26} height={26} />
+          {bannerType == FILE_TYPE.IMAGE ? (
+            <div className="w-full flex flex-col justify-start items-center space-x-0 md:space-x-2">
+              <ButtonUpload
+                id="upload_high_quality_banner_image"
+                label="Upload High Quality Banner Image *"
+                file={bannerImageFile}
+                setFile={setBannerImageFile}
+                fileType={FILE_TYPE.IMAGE}
+                uploaded={bannerImageFileUploaded}
+              />
+              <ButtonUpload
+                id="upload_low_quality_banner_image"
+                label="Upload Low Quality Banner Image"
+                file={bannerImageFileCompressed}
+                setFile={setBannerImageFileCompressed}
+                fileType={FILE_TYPE.IMAGE}
+                uploaded={bannerImageFileCompressedUploaded}
+              />
+            </div>
+          ) : (
+            <div className="w-full flex flex-col justify-start items-center space-x-0 md:space-x-2">
+              <ButtonUpload
+                id="upload_high_quality_banner_video"
+                label="Upload High Quality Banner Video *"
+                file={bannerVideoFile}
+                setFile={setBannerVideoFile}
+                fileType={FILE_TYPE.VIDEO}
+                uploaded={bannerVideoFileUploaded}
+              />
+              <ButtonUpload
+                id="upload_low_quality_banner_video"
+                label="Upload Low Quality Banner Video"
+                file={bannerVideoFileCompressed}
+                setFile={setBannerVideoFileCompressed}
+                fileType={FILE_TYPE.VIDEO}
+                uploaded={bannerVideoFileCompressedUploaded}
+              />
             </div>
           )}
-        </div>
-      </div>
 
-      <div className="w-full lg:w-2/3 xl:w-1/2 p-5 lg:-mt-10 ">
-        <div className="w-full flex flex-col p-5 bg-[#2f363e] rounded-lg">
           <div className="w-full flex flex-col md:flex-row justify-start items-center space-x-0 md:space-x-2">
             <TextInput
               sname="Username"
@@ -704,11 +786,21 @@ export default function FanClub() {
             />
           </div>
           <ButtonUpload
-            sname="Logo Image"
-            label=""
-            placeholder="Select logo image file"
-            accept_file="image/*"
-            setValue={setLogoImageFile}
+            id="upload_avatar_image"
+            label="Upload Avatar Image"
+            file={avatarImageFile}
+            setFile={setAvatarImageFile}
+            fileType={FILE_TYPE.IMAGE}
+            uploaded={avatarImageFileUploaded}
+          />
+          <br />
+          <ButtonUpload
+            id="upload_logo_image"
+            label="Upload Logo Image"
+            file={logoImageFile}
+            setFile={setLogoImageFile}
+            fileType={FILE_TYPE.IMAGE}
+            uploaded={logoImageFileUploaded}
           />
           <br />
           <ButtonSettings bgColor="cyan" label="Save" onClick={onSaveProfile} />
@@ -755,6 +847,48 @@ export default function FanClub() {
       {(isWorkingPost || isWorkingArtist) && (
         <div className="loading">
           <RadialProgress width={50} height={50} />
+        </div>
+      )}
+
+      {isWorkingArtist && (
+        <div className="loading w-[50px] h-[50px]">
+          {artistProgress > 0 ? (
+            <div className="w-20 h-20">
+              <CircularProgressbar
+                styles={buildStyles({
+                  pathColor: "#0052e4",
+                  textColor: "#ffffff",
+                  trailColor: "#888888",
+                })}
+                value={artistProgress}
+                maxValue={100}
+                text={`${artistProgress}%`}
+              />
+            </div>
+          ) : (
+            <RadialProgress width={50} height={50} />
+          )}
+        </div>
+      )}
+
+      {isWorkingPost && (
+        <div className="loading w-[50px] h-[50px]">
+          {postProgress > 0 ? (
+            <div className="w-20 h-20">
+              <CircularProgressbar
+                styles={buildStyles({
+                  pathColor: "#0052e4",
+                  textColor: "#ffffff",
+                  trailColor: "#888888",
+                })}
+                value={postProgress}
+                maxValue={100}
+                text={`${postProgress}%`}
+              />
+            </div>
+          ) : (
+            <RadialProgress width={50} height={50} />
+          )}
         </div>
       )}
     </Layout>

@@ -25,6 +25,7 @@ import { useAuthValues } from "@/contexts/contextAuth";
 import { useSizeValues } from "@/contexts/contextSize";
 
 import { SIDEBARWIDTH_SM } from "@/libs/constants";
+import Setting from "../Icons/Setting";
 
 type Props = {
   visible: boolean;
@@ -62,7 +63,7 @@ const Sidebar = ({ visible, setVisible }: Props) => {
           exit={{ width: 0 }}
           transition={{ duration: 0.3 }}
           className={`${styles.container} ${twMerge(
-            "absolute left-0 top-0 md:relative h-fit md:h-screen bg-third rounded-br-3xl md:rounded-br-none pt-5 pb-0 md:py-5 overflow-x-hidden overflow-y-auto z-30",
+            "fixed left-0 top-0 h-fit md:h-screen bg-third rounded-br-3xl md:rounded-br-none pt-5 pb-0 md:py-5 overflow-x-hidden overflow-y-auto z-30",
             isMobile ? "border-r border-x-gray-700" : "border-none"
           )}`}
           style={{ width: `${isMobile ? SIDEBARWIDTH_SM : sidebarWidth}px` }}
@@ -94,6 +95,13 @@ const Sidebar = ({ visible, setVisible }: Props) => {
             onClick={() => goToLink("/home")}
           />
           <ButtonSidebar
+            active={router.pathname == "/album"}
+            collapsed={isSidebarCollapsed}
+            icon={<Album width={24} height={24} />}
+            label="Album"
+            onClick={() => goToLink("/album")}
+          />
+          <ButtonSidebar
             active={router.pathname == "/music"}
             collapsed={isSidebarCollapsed}
             icon={<Music width={26} height={26} color="white" />}
@@ -101,18 +109,18 @@ const Sidebar = ({ visible, setVisible }: Props) => {
             onClick={() => goToLink("/music")}
           />
           <ButtonSidebar
+            active={router.pathname == "/category"}
+            collapsed={isSidebarCollapsed}
+            icon={<Album width={24} height={24} />}
+            label="Category"
+            onClick={() => goToLink("/category")}
+          />
+          <ButtonSidebar
             active={router.pathname == "/live-stream"}
             collapsed={isSidebarCollapsed}
             icon={<Mic width={24} height={24} />}
             label="Livestream"
             onClick={() => goToLink("/live-stream")}
-          />
-          <ButtonSidebar
-            active={router.pathname == "/album"}
-            collapsed={isSidebarCollapsed}
-            icon={<Album width={24} height={24} />}
-            label="Album"
-            onClick={() => goToLink("/album")}
           />
           <ButtonSidebar
             active={router.pathname == "/fan-club"}
@@ -164,11 +172,11 @@ const Sidebar = ({ visible, setVisible }: Props) => {
             onClick={() => goToLink("/payment")}
           />
           <ButtonSidebar
-            active={router.pathname == "/fan-pages"}
+            active={router.pathname == "/page-settings"}
             collapsed={isSidebarCollapsed}
-            icon={<Info width={24} height={24} />}
-            label="Fan Pages"
-            onClick={() => goToLink("/fan-pages")}
+            icon={<Setting width={24} height={24} />}
+            label="Page Settings"
+            onClick={() => goToLink("/page-settings")}
           />
 
           <div

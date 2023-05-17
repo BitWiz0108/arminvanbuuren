@@ -3,24 +3,27 @@ import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import {
-  API_BASE_URL,
-  API_VERSION,
-  DEFAULT_COVER_IMAGE,
-} from "@/libs/constants";
+import { API_BASE_URL, API_VERSION } from "@/libs/constants";
 
-import { IMusic } from "@/interfaces/IMusic";
+import { IMusic, IMusicQueryParam } from "@/interfaces/IMusic";
 import { getAWSSignedURL } from "@/libs/aws";
 
 const useMusic = () => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { accessToken, user } = useAuthValues();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadingProgress, setLoadingProgress] = useState<number>(0);
 
-  const fetchMusic = async (page: number, limit: number = 10) => {
+  const fetchMusic = async (queryParam: IMusicQueryParam) => {
     setIsLoading(true);
 
+    const params = Object.entries(queryParam)
+      .map((param) => {
+        return `${param[0]}=${param[1]}`;
+      })
+      .join("&");
+
     const response = await fetch(
-      `${API_BASE_URL}/${API_VERSION}/admin/music?page=${page}&limit=${limit}`,
+      `${API_BASE_URL}/${API_VERSION}/admin/music?${params}`,
       {
         method: "GET",
         headers: {
@@ -34,11 +37,21 @@ const useMusic = () => {
       setIsLoading(false);
       const data = await response.json();
       const musics = data.musics as Array<IMusic>;
-      const coverImagePromises = musics.map((music) => {
-        return getAWSSignedURL(music.coverImage, DEFAULT_COVER_IMAGE);
+
+      const musicPromises = musics.map((music) => {
+        return getAWSSignedURL(music.musicFile);
       });
-      const coverImages = await Promise.all(coverImagePromises);
-      musics.forEach((music, index) => (music.coverImage = coverImages[index]));
+      const musicCompressedPromises = musics.map((music) => {
+        return getAWSSignedURL(music.musicFileCompressed);
+      });
+      const result = await Promise.all([
+        Promise.all(musicPromises),
+        Promise.all(musicCompressedPromises),
+      ]);
+      musics.forEach((music, index) => {
+        music.musicFile = result[0][index];
+        music.musicFileCompressed = result[1][index];
+      });
 
       return {
         pages: data.pages as number,
@@ -50,9 +63,10 @@ const useMusic = () => {
     return null;
   };
 
-  const createMusic = async (
+  const createMusic = (
     coverImage: File,
     musicFile: File,
+    musicFileCompressed: File,
     isExclusive: boolean,
     albumId: number | null,
     duration: number,
@@ -63,68 +77,85 @@ const useMusic = () => {
     lyrics: string,
     description: string,
     releaseDate: string
-  ) => {
-    setIsLoading(true);
+  ): Promise<IMusic | null> => {
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
+      setLoadingProgress(0);
 
-    const formData = new FormData();
-    if (user.id) formData.append("userId", user.id.toString());
-    else formData.append("userId", "");
-    formData.append("files", musicFile);
-    formData.append("files", coverImage);
-    formData.append("isExclusive", isExclusive.toString());
-    if (albumId) {
-      formData.append("albumId", albumId.toString());
-    } else {
-      formData.append("albumId", "");
-    }
-    formData.append("duration", duration.toString());
-    formData.append("title", title.toString());
-    if (musicGenrerId != null) {
-      formData.append("musicGenrerId", musicGenrerId.toString());
-    }
-    if (languageId != null) {
-      formData.append("languageId", languageId.toString());
-    }
-    formData.append("copyright", copyright.toString());
-    formData.append("lyrics", lyrics.toString());
-    formData.append("description", description.toString());
-    formData.append("releaseDate", releaseDate.toString());
-
-    const response = await fetch(`${API_BASE_URL}/${API_VERSION}/admin/music`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: formData,
-    });
-
-    if (response.ok) {
-      setIsLoading(false);
-      const data = await response.json();
-      const music = data as IMusic;
-      music.coverImage = await getAWSSignedURL(
-        music.coverImage,
-        DEFAULT_COVER_IMAGE
-      );
-
-      return music;
-    } else {
-      if (response.status == 500) {
-        toast.error("Error occured on creating music.");
+      const formData = new FormData();
+      if (user.id) formData.append("userId", user.id.toString());
+      else formData.append("userId", "");
+      formData.append("files", musicFile);
+      formData.append("files", musicFileCompressed);
+      formData.append("files", coverImage);
+      formData.append("isExclusive", isExclusive.toString());
+      if (albumId) {
+        formData.append("albumId", albumId.toString());
       } else {
-        const data = await response.json();
-        toast.error(data.message);
+        formData.append("albumId", "");
       }
-    }
+      formData.append("duration", duration.toString());
+      formData.append("title", title.toString());
+      if (musicGenrerId != null) {
+        formData.append("musicGenrerId", musicGenrerId.toString());
+      }
+      if (languageId != null) {
+        formData.append("languageId", languageId.toString());
+      }
+      formData.append("copyright", copyright.toString());
+      formData.append("lyrics", lyrics.toString());
+      formData.append("description", description.toString());
+      formData.append("releaseDate", releaseDate.toString());
 
-    setIsLoading(false);
-    return null;
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${API_BASE_URL}/${API_VERSION}/admin/music`);
+
+      xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          setLoadingProgress(percentCompleted);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 202) {
+          setIsLoading(false);
+          const data = JSON.parse(xhr.response);
+          const music = data as IMusic;
+
+          resolve(music);
+        } else {
+          if (xhr.status === 500) {
+            toast.error("Error occurred while creating music.");
+            setIsLoading(false);
+          } else {
+            const data = JSON.parse(xhr.responseText);
+            toast.error(data.message);
+            setIsLoading(false);
+          }
+
+          reject(xhr.statusText);
+        }
+      };
+
+      xhr.onloadend = () => {
+        setLoadingProgress(0);
+      };
+
+      xhr.send(formData);
+    });
   };
 
   const updateMusic = async (
     id: number | null,
     coverImage: File | null,
     musicFile: File | null,
+    musicFileCompressed: File | null,
     isExclusive: boolean,
     albumId: number | null,
     duration: number,
@@ -135,64 +166,76 @@ const useMusic = () => {
     lyrics: string,
     description: string,
     releaseDate: string
-  ) => {
-    setIsLoading(true);
+  ): Promise<IMusic | null> => {
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
 
-    const nullFile = new File([""], "garbage.bin");
+      const nullFile = new File([""], "garbage.bin");
 
-    const formData = new FormData();
-    if (id) formData.append("id", id.toString());
-    else formData.append("id", "");
-    formData.append("files", musicFile ?? nullFile);
-    formData.append("files", coverImage ?? nullFile);
-    formData.append("isExclusive", isExclusive.toString());
-    if (albumId == null) {
-      formData.append("albumId", "");
-    } else {
-      formData.append("albumId", albumId.toString());
-    }
-    formData.append("duration", duration.toString());
-    formData.append("title", title.toString());
-    if (musicGenrerId != null) {
-      formData.append("musicGenrerId", musicGenrerId.toString());
-    }
-    if (languageId != null) {
-      formData.append("languageId", languageId.toString());
-    }
-    formData.append("copyright", copyright.toString());
-    formData.append("lyrics", lyrics.toString());
-    formData.append("description", description.toString());
-    formData.append("releaseDate", releaseDate.toString());
-
-    const response = await fetch(`${API_BASE_URL}/${API_VERSION}/admin/music`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: formData,
-    });
-
-    if (response.ok) {
-      setIsLoading(false);
-      const data = await response.json();
-      const music = data as IMusic;
-      music.coverImage = await getAWSSignedURL(
-        music.coverImage,
-        DEFAULT_COVER_IMAGE
-      );
-
-      return music;
-    } else {
-      if (response.status == 500) {
-        toast.error("Error occured on updating music.");
+      const formData = new FormData();
+      if (id) formData.append("id", id.toString());
+      else formData.append("id", "");
+      formData.append("files", musicFile ?? nullFile);
+      formData.append("files", musicFileCompressed ?? nullFile);
+      formData.append("files", coverImage ?? nullFile);
+      formData.append("isExclusive", isExclusive.toString());
+      if (albumId == null) {
+        formData.append("albumId", "");
       } else {
-        const data = await response.json();
-        toast.error(data.message);
+        formData.append("albumId", albumId.toString());
       }
-    }
+      formData.append("duration", duration.toString());
+      formData.append("title", title.toString());
+      if (musicGenrerId != null) {
+        formData.append("musicGenrerId", musicGenrerId.toString());
+      }
+      if (languageId != null) {
+        formData.append("languageId", languageId.toString());
+      }
+      formData.append("copyright", copyright.toString());
+      formData.append("lyrics", lyrics.toString());
+      formData.append("description", description.toString());
+      formData.append("releaseDate", releaseDate.toString());
 
-    setIsLoading(false);
-    return null;
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/music`);
+      xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          setLoadingProgress(percentCompleted);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 202) {
+          setIsLoading(false);
+          const data = JSON.parse(xhr.response);
+          const music = data as IMusic;
+          resolve(music);
+        } else {
+          if (xhr.status === 500) {
+            toast.error("Error occurred while updating music.");
+            setIsLoading(false);
+          } else {
+            const data = JSON.parse(xhr.responseText);
+            toast.error(data.message);
+            setIsLoading(false);
+          }
+          reject(xhr.statusText);
+        }
+      };
+
+      xhr.onloadend = () => {
+        setLoadingProgress(0);
+      };
+
+      xhr.send(formData);
+    });
   };
 
   const deleteMusic = async (id: number | null) => {
@@ -218,7 +261,14 @@ const useMusic = () => {
     return false;
   };
 
-  return { isLoading, fetchMusic, createMusic, updateMusic, deleteMusic };
+  return {
+    isLoading,
+    loadingProgress,
+    fetchMusic,
+    createMusic,
+    updateMusic,
+    deleteMusic,
+  };
 };
 
 export default useMusic;

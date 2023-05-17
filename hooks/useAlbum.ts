@@ -3,18 +3,14 @@ import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import { getAWSSignedURL } from "@/libs/aws";
-import {
-  API_BASE_URL,
-  API_VERSION,
-  DEFAULT_COVER_IMAGE,
-} from "@/libs/constants";
+import { API_BASE_URL, API_VERSION } from "@/libs/constants";
 
 import { IAlbum } from "@/interfaces/IAlbum";
 
 const useAlbum = () => {
   const { accessToken, user } = useAuthValues();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadingProgress, setLoadingProgress] = useState<number>(0);
 
   const fetchAllAlbum = async () => {
     setIsLoading(true);
@@ -31,11 +27,6 @@ const useAlbum = () => {
       setIsLoading(false);
       const data = await response.json();
       const albums = data as Array<IAlbum>;
-      const promises = albums.map((album) => {
-        return getAWSSignedURL(album.image, DEFAULT_COVER_IMAGE);
-      });
-      const images = await Promise.all(promises);
-      albums.forEach((album, index) => (album.image = images[index]));
 
       return albums;
     }
@@ -48,43 +39,57 @@ const useAlbum = () => {
     image: File,
     name: string,
     description: string
-  ) => {
-    setIsLoading(true);
+  ): Promise<IAlbum | null> => {
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
+      setLoadingProgress(0);
 
-    const formData = new FormData();
-    formData.append("imageFile", image);
-    formData.append("name", name.toString());
-    if (user.id) formData.append("userId", user.id.toString());
-    else formData.append("userId", "");
-    formData.append("description", description.toString());
-    formData.append("copyright", "");
+      const formData = new FormData();
 
-    const response = await fetch(`${API_BASE_URL}/${API_VERSION}/admin/album`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: formData,
+      formData.append("imageFile", image);
+      formData.append("name", name.toString());
+      if (user.id) formData.append("userId", user.id.toString());
+      else formData.append("userId", "");
+      formData.append("description", description.toString());
+      formData.append("copyright", "");
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${API_BASE_URL}/${API_VERSION}/admin/album`);
+      xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          setLoadingProgress(percentCompleted);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 202) {
+          setIsLoading(false);
+          const data = JSON.parse(xhr.response);
+          const album = data as IAlbum;
+          resolve(album);
+        } else {
+          if (xhr.status === 500) {
+            toast.error("Error occurred while creating album.");
+            setIsLoading(false);
+          } else {
+            const data = JSON.parse(xhr.responseText);
+            toast.error(data.message);
+            setIsLoading(false);
+          }
+          reject(xhr.statusText);
+        }
+      };
+      xhr.onloadend = () => {
+        setLoadingProgress(0);
+      };
+      xhr.send(formData);
     });
-
-    if (response.ok) {
-      setIsLoading(false);
-      const data = await response.json();
-      const album = data as IAlbum;
-      album.image = await getAWSSignedURL(album.image, DEFAULT_COVER_IMAGE);
-
-      return album;
-    } else {
-      if (response.status == 500) {
-        toast.error("Error occured on creating Album.");
-      } else {
-        const data = await response.json();
-        toast.error(data.message);
-      }
-    }
-
-    setIsLoading(false);
-    return null;
   };
 
   const updateAlbum = async (
@@ -92,47 +97,59 @@ const useAlbum = () => {
     image: File | null,
     name: string,
     description: string
-  ) => {
-    setIsLoading(true);
+  ): Promise<IAlbum | null> => {
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
 
-    const formData = new FormData();
-    if (id) formData.append("id", id.toString());
-    else formData.append("id", "");
-    if (image) {
-      formData.append("imageFile", image);
-    }
-    formData.append("name", name.toString());
-    if (user.id) formData.append("userId", user.id.toString());
-    else formData.append("userId", "");
-    formData.append("description", description.toString());
-    formData.append("copyright", "");
-
-    const response = await fetch(`${API_BASE_URL}/${API_VERSION}/admin/album`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: formData,
-    });
-
-    if (response.ok) {
-      setIsLoading(false);
-      const data = await response.json();
-      const album = data as IAlbum;
-      album.image = await getAWSSignedURL(album.image, DEFAULT_COVER_IMAGE);
-
-      return album;
-    } else {
-      if (response.status == 500) {
-        toast.error("Error occured on updating Album.");
-      } else {
-        const data = await response.json();
-        toast.error(data.message);
+      const formData = new FormData();
+      if (id) formData.append("id", id.toString());
+      else formData.append("id", "");
+      if (image) {
+        formData.append("imageFile", image);
       }
-    }
+      formData.append("name", name.toString());
+      if (user.id) formData.append("userId", user.id.toString());
+      else formData.append("userId", "");
+      formData.append("description", description.toString());
+      formData.append("copyright", "");
 
-    setIsLoading(false);
-    return null;
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/album`);
+      xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          setLoadingProgress(percentCompleted);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 202) {
+          setIsLoading(false);
+          const data = JSON.parse(xhr.response);
+          const album = data as IAlbum;
+          resolve(album);
+        } else {
+          if (xhr.status === 500) {
+            toast.error("Error occurred while updating album.");
+            setIsLoading(false);
+          } else {
+            const data = JSON.parse(xhr.responseText);
+            toast.error(data.message);
+            setIsLoading(false);
+          }
+          reject(xhr.statusText);
+        }
+      };
+      xhr.onloadend = () => {
+        setLoadingProgress(0);
+      };
+      xhr.send(formData);
+    });
   };
 
   const deleteAlbum = async (id: number | null) => {
@@ -158,7 +175,14 @@ const useAlbum = () => {
     return false;
   };
 
-  return { isLoading, fetchAllAlbum, createAlbum, updateAlbum, deleteAlbum };
+  return {
+    isLoading,
+    loadingProgress,
+    fetchAllAlbum,
+    createAlbum,
+    updateAlbum,
+    deleteAlbum,
+  };
 };
 
 export default useAlbum;

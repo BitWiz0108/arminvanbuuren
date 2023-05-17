@@ -3,20 +3,15 @@ import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import {
-  API_BASE_URL,
-  API_VERSION,
-  DEFAULT_AVATAR_IMAGE,
-  DEFAULT_COVER_IMAGE,
-} from "@/libs/constants";
-import { getAWSSignedURL } from "@/libs/aws";
+import { API_BASE_URL, API_VERSION, FILE_TYPE } from "@/libs/constants";
 
-import { DEFAULT_POST, IPost } from "@/interfaces/IPost";
+import { IPost } from "@/interfaces/IPost";
 import { IReply } from "@/interfaces/IReply";
 
 const usePost = () => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { accessToken, user } = useAuthValues();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadingProgress, setLoadingProgress] = useState<number>(0);
 
   const fetchPost = async (page: number, limit: number = 10) => {
     setIsLoading(true);
@@ -36,11 +31,6 @@ const usePost = () => {
       setIsLoading(false);
       const data = await response.json();
       const posts = data.posts as Array<IPost>;
-      const imagePromises = posts.map((post) => {
-        return getAWSSignedURL(post.compressedImage, DEFAULT_COVER_IMAGE);
-      });
-      const images = await Promise.all(imagePromises);
-      posts.forEach((post, index) => (post.image = images[index]));
 
       return {
         pages: data.pages as number,
@@ -69,20 +59,6 @@ const usePost = () => {
     if (response.ok) {
       const data = await response.json();
       const post = data as IPost;
-      post.image = await getAWSSignedURL(post.image, DEFAULT_POST.image);
-      post.compressedImage = await getAWSSignedURL(
-        post.compressedImage,
-        DEFAULT_POST.image
-      );
-      const avatarImagePromises = post.replies.map((reply) => {
-        return getAWSSignedURL(reply.replier.avatarImage, DEFAULT_AVATAR_IMAGE);
-      });
-      if (avatarImagePromises && avatarImagePromises.length > 0) {
-        const avatarImages = await Promise.all(avatarImagePromises);
-        post.replies.forEach(
-          (reply, index) => (reply.replier.avatarImage = avatarImages[index])
-        );
-      }
 
       setIsLoading(false);
       return post;
@@ -93,92 +69,143 @@ const usePost = () => {
   };
 
   const createPost = async (
+    postType: FILE_TYPE,
     imageFile: File,
+    imageFileCompressed: File | null,
+    videoFile: File,
+    videoFileCompressed: File | null,
     title: string,
     content: string
-  ) => {
-    setIsLoading(true);
+  ): Promise<IPost | null> => {
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
+      setLoadingProgress(0);
 
-    const formData = new FormData();
-    formData.append("imageFile", imageFile);
-    if (user.id) formData.append("authorId", user.id.toString());
-    else formData.append("authorId", "");
-    formData.append("title", title.toString());
-    formData.append("content", content.toString());
+      const nullFile = new File([""], "garbage.bin");
 
-    const response = await fetch(`${API_BASE_URL}/${API_VERSION}/admin/post`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: formData,
-    });
-
-    if (response.ok) {
-      setIsLoading(false);
-      const data = await response.json();
-      const post = data as IPost;
-      post.image = await getAWSSignedURL(post.image, DEFAULT_COVER_IMAGE);
-
-      return post;
-    } else {
-      if (response.status == 500) {
-        toast.error("Error occured on creating post.");
+      const formData = new FormData();
+      formData.append("type", postType.toString());
+      if (postType == FILE_TYPE.IMAGE) {
+        formData.append("files", imageFile);
+        formData.append("files", imageFileCompressed ?? nullFile);
       } else {
-        const data = await response.json();
-        toast.error(data.message);
+        formData.append("files", videoFile);
+        formData.append("files", videoFileCompressed ?? nullFile);
       }
-    }
 
-    setIsLoading(false);
-    return null;
+      if (user.id) formData.append("authorId", user.id.toString());
+      else formData.append("authorId", "");
+      formData.append("title", title.toString());
+      formData.append("content", content.toString());
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${API_BASE_URL}/${API_VERSION}/admin/post`);
+      xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          setLoadingProgress(percentCompleted);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 202) {
+          setIsLoading(false);
+          const data = JSON.parse(xhr.response);
+          const post = data as IPost;
+          resolve(post);
+        } else {
+          if (xhr.status === 500) {
+            toast.error("Error occurred while creating post.");
+            setIsLoading(false);
+          } else {
+            const data = JSON.parse(xhr.responseText);
+            toast.error(data.message);
+            setIsLoading(false);
+          }
+          reject(xhr.statusText);
+        }
+      };
+      xhr.onloadend = () => {
+        setLoadingProgress(0);
+      };
+      xhr.send(formData);
+    });
   };
 
   const updatePost = async (
     id: number | null,
+    postType: FILE_TYPE,
     imageFile: File | null,
+    imageFileCompressed: File | null,
+    videoFile: File | null,
+    videoFileCompressed: File | null,
     title: string,
     content: string
-  ) => {
-    setIsLoading(true);
+  ): Promise<IPost | null> => {
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
+      setLoadingProgress(0);
 
-    const nullFile = new File([""], "garbage.bin");
+      const nullFile = new File([""], "garbage.bin");
 
-    const formData = new FormData();
-    if (id) formData.append("id", id.toString());
-    else formData.append("id", "");
-    formData.append("imageFile", imageFile ?? nullFile);
-    if (user.id) formData.append("authorId", user.id.toString());
-    else formData.append("authorId", "");
-    formData.append("title", title.toString());
-    formData.append("content", content.toString());
-
-    const response = await fetch(`${API_BASE_URL}/${API_VERSION}/admin/post`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: formData,
-    });
-
-    if (response.ok) {
-      setIsLoading(false);
-      const data = await response.json();
-      const post = data as IPost;
-      post.image = await getAWSSignedURL(post.image, DEFAULT_COVER_IMAGE);
-
-      return post;
-    } else {
-      if (response.status == 500) {
-        toast.error("Error occured on updating post.");
+      const formData = new FormData();
+      if (id) formData.append("id", id.toString());
+      else formData.append("id", "");
+      formData.append("type", postType.toString());
+      if (postType == FILE_TYPE.IMAGE) {
+        formData.append("files", imageFile ?? nullFile);
+        formData.append("files", imageFileCompressed ?? nullFile);
       } else {
-        const data = await response.json();
-        toast.error(data.message);
+        formData.append("files", videoFile ?? nullFile);
+        formData.append("files", videoFileCompressed ?? nullFile);
       }
-    }
+      if (user.id) formData.append("authorId", user.id.toString());
+      else formData.append("authorId", "");
+      formData.append("title", title.toString());
+      formData.append("content", content.toString());
 
-    setIsLoading(false);
-    return null;
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/post`);
+      xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          setLoadingProgress(percentCompleted);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 202) {
+          setIsLoading(false);
+          const data = JSON.parse(xhr.response);
+          const post = data as IPost;
+          resolve(post);
+        } else {
+          if (xhr.status === 500) {
+            toast.error("Error occurred while updating post.");
+            setIsLoading(false);
+          } else {
+            const data = JSON.parse(xhr.responseText);
+            toast.error(data.message);
+            setIsLoading(false);
+          }
+          reject(xhr.statusText);
+        }
+      };
+      xhr.onloadend = () => {
+        setLoadingProgress(0);
+      };
+      xhr.send(formData);
+    });
   };
 
   const deletePost = async (id: number | null) => {
@@ -226,15 +253,6 @@ const usePost = () => {
     if (response.ok) {
       const data = await response.json();
       const replies = data.replies as Array<IReply>;
-      const avatarImagePromises = replies.map((reply) => {
-        return getAWSSignedURL(reply.replier.avatarImage, DEFAULT_AVATAR_IMAGE);
-      });
-      if (avatarImagePromises && avatarImagePromises.length > 0) {
-        const avatarImages = await Promise.all(avatarImagePromises);
-        replies.forEach(
-          (reply, index) => (reply.replier.avatarImage = avatarImages[index])
-        );
-      }
 
       const pages = Number(data.pages);
 
@@ -264,10 +282,6 @@ const usePost = () => {
     if (response.ok) {
       const data = await response.json();
       const reply = data as IReply;
-      reply.replier.avatarImage = await getAWSSignedURL(
-        reply.replier.avatarImage,
-        DEFAULT_AVATAR_IMAGE
-      );
 
       setIsLoading(false);
       return reply;
@@ -302,6 +316,7 @@ const usePost = () => {
 
   return {
     isLoading,
+    loadingProgress,
     fetchPost,
     fetchPostById,
     createPost,

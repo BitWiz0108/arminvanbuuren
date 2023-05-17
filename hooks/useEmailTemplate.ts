@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { getAWSSignedURL } from "@/libs/aws";
 
 import { API_BASE_URL, API_VERSION } from "@/libs/constants";
 
@@ -12,6 +11,7 @@ import { EMAIL_TEMPLATE_TYPE } from "@/libs/constants";
 const useEmailTemplate = () => {
   const { accessToken } = useAuthValues();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadingProgress, setLoadingProgress] = useState<number>(0);
 
   const fetchEmailTemplate = async (type: EMAIL_TEMPLATE_TYPE) => {
     setIsLoading(true);
@@ -32,8 +32,6 @@ const useEmailTemplate = () => {
       if (response) {
         const data = await response.json();
         const emailData = data as IEmailTemplate;
-        const logoImg = await getAWSSignedURL(emailData.logoImage);
-        emailData.logoImage = logoImg;
         return emailData;
       }
     }
@@ -51,53 +49,72 @@ const useEmailTemplate = () => {
     subject: string,
     content: string,
     imageFile: File | null
-  ) => {
-    setIsLoading(true);
+  ): Promise<IEmailTemplate | null> => {
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
+      setLoadingProgress(0);
 
-    const formData = new FormData();
-    if (id) formData.append("id", id.toString());
-    else formData.append("id", "");
-    if (imageFile) {
-      formData.append("imageFile", imageFile);
-    }
-    formData.append("title", title.toString());
-    formData.append("fromName", fromName.toString());
-    formData.append("fromEmail", fromEmail.toString());
-    formData.append("subject", subject.toString());
-
-    formData.append("content", content.toString());
-
-    const response = await fetch(
-      `${API_BASE_URL}/${API_VERSION}/admin/email-templates`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: formData,
+      const formData = new FormData();
+      if (id) formData.append("id", id.toString());
+      else formData.append("id", "");
+      if (imageFile) {
+        formData.append("imageFile", imageFile);
       }
-    );
+      formData.append("title", title.toString());
+      formData.append("fromName", fromName.toString());
+      formData.append("fromEmail", fromEmail.toString());
+      formData.append("subject", subject.toString());
+      formData.append("content", content.toString());
 
-    if (response.ok) {
-      setIsLoading(false);
-      const data = await response.json();
-      const emailData = data as IEmailTemplate;
-      emailData.logoImage = await getAWSSignedURL(emailData.logoImage);
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/email-templates`);
 
-      return emailData;
-    } else {
-      if (response.status == 500) {
-        toast.error("Error occured on updating the email template.");
-      } else {
-        const data = await response.json();
-        toast.error(data.message);
-      }
-    }
+      xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
 
-    setIsLoading(false);
-    return null;
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          setLoadingProgress(percentCompleted);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 202) {
+          setIsLoading(false);
+          const data = JSON.parse(xhr.response);
+          const music = data as IEmailTemplate;
+
+          resolve(music);
+        } else {
+          if (xhr.status === 500) {
+            toast.error("Error occurred while updating the email template.");
+            setIsLoading(false);
+          } else {
+            const data = JSON.parse(xhr.responseText);
+            toast.error(data.message);
+            setIsLoading(false);
+          }
+
+          reject(xhr.statusText);
+        }
+      };
+
+      xhr.onloadend = () => {
+        setLoadingProgress(0);
+      };
+
+      xhr.send(formData);
+    });
   };
 
-  return { isLoading, fetchEmailTemplate, updateEmailTemplate };
+  return {
+    isLoading,
+    loadingProgress,
+    fetchEmailTemplate,
+    updateEmailTemplate,
+  };
 };
 export default useEmailTemplate;

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
 import GalleryItem from "@/components/GalleryItem";
 import PlusCircleDotted from "@/components/Icons/PlusCircleDotted";
@@ -8,13 +10,20 @@ import ImageAddModal from "@/components/ImageAddModal";
 import useGallery from "@/hooks/useGallery";
 
 import { DEFAULT_GALLERY, IImage } from "@/interfaces/IGallery";
-import { IMAGE_SIZE } from "@/libs/constants";
+import { FILE_TYPE, IMAGE_SIZE } from "@/libs/constants";
 import { useAuthValues } from "@/contexts/contextAuth";
+import RadialProgress from "../RadialProgress";
 
 const GalleryView = () => {
   const { isSignedIn } = useAuthValues();
-  const { isLoading, fetchImages, addImage, updateImage, deleteImage } =
-    useGallery();
+  const {
+    isLoading,
+    loadingProgress,
+    fetchImages,
+    addImage,
+    updateImage,
+    deleteImage,
+  } = useGallery();
 
   const [image, setImage] = useState<IImage | null>(null);
   const [images, setImages] = useState<Array<IImage>>(DEFAULT_GALLERY.images);
@@ -72,13 +81,37 @@ const GalleryView = () => {
           <PlusCircleDotted width={48} height={48} />
         </div>
       </div>
-
       <ImageAddModal
         image={image}
         isVisible={isAddModalVisible}
         setVisible={setIsAddModalVisible}
-        addImage={(imageFile: File, size: IMAGE_SIZE, description: string) => {
-          addImage(imageFile, size, description).then((data) => {
+        addImage={(
+          galleryImageType: FILE_TYPE,
+          imageFile: File | null,
+          imageFileCompressed: File | null,
+          videoFile: File | null,
+          videoFileCompressed: File | null,
+          size: IMAGE_SIZE,
+          description: string
+        ) => {
+          console.log(
+            galleryImageType,
+            imageFile,
+            imageFileCompressed,
+            videoFile,
+            videoFileCompressed,
+            size,
+            description
+          );
+          addImage(
+            galleryImageType,
+            imageFile,
+            imageFileCompressed,
+            videoFile,
+            videoFileCompressed,
+            size,
+            description
+          ).then((data) => {
             if (data) {
               fetchImages().then((value) => {
                 if (value) {
@@ -93,11 +126,24 @@ const GalleryView = () => {
         }}
         updateImage={(
           id: number,
+          galleryImageType: FILE_TYPE,
           imageFile: File | null,
+          imageFileCompressed: File | null,
+          videoFile: File | null,
+          videoFileCompressed: File | null,
           size: IMAGE_SIZE,
           description: string
         ) => {
-          updateImage(id, imageFile, size, description).then((data) => {
+          updateImage(
+            id,
+            galleryImageType,
+            imageFile,
+            imageFileCompressed,
+            videoFile,
+            videoFileCompressed,
+            size,
+            description
+          ).then((data) => {
             if (data) {
               fetchImages().then((value) => {
                 if (value) {
@@ -111,8 +157,26 @@ const GalleryView = () => {
           });
         }}
       />
-
-      {isLoading && <div className="loading"></div>}
+      {isLoading && (
+        <div className="loading w-[50px] h-[50px]">
+          {loadingProgress > 0 ? (
+            <div className="w-20 h-20">
+              <CircularProgressbar
+                styles={buildStyles({
+                  pathColor: "#0052e4",
+                  textColor: "#ffffff",
+                  trailColor: "#888888",
+                })}
+                value={loadingProgress}
+                maxValue={100}
+                text={`${loadingProgress}%`}
+              />
+            </div>
+          ) : (
+            <RadialProgress width={50} height={50} />
+          )}
+        </div>
+      )}{" "}
     </div>
   );
 };

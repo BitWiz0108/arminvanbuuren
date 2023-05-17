@@ -1,13 +1,13 @@
-import React from 'react';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import React from "react";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
-import { Line, Pie } from 'react-chartjs-2';
+import { Line, Pie } from "react-chartjs-2";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 type Props = {
-  liveStream: number,
-  music: number
+  liveStream: number;
+  music: number;
 };
 
 const PieGraph = ({ liveStream, music }: Props) => {
@@ -16,19 +16,13 @@ const PieGraph = ({ liveStream, music }: Props) => {
   inData.push(music);
 
   const data = {
-    labels: ['Livestream', 'Music'],
+    labels: ["Livestream", "Music"],
     datasets: [
       {
-        label: 'Number',
+        label: "Number",
         data: inData,
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.9)',
-          'rgba(54, 162, 235, 0.8)',
-        ],
-        borderColor: [
-          'rgba(255, 99, 132, 1)',
-          'rgba(54, 162, 235, 1)',
-        ],
+        backgroundColor: ["rgba(255, 99, 132, 0.9)", "rgba(54, 162, 235, 0.8)"],
+        borderColor: ["rgba(255, 99, 132, 1)", "rgba(54, 162, 235, 1)"],
         borderWidth: 1,
       },
     ],

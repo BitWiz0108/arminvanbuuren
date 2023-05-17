@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
 import Layout from "@/components/Layout";
 import AlbumTable from "@/components/AlbumTable";
@@ -7,6 +9,8 @@ import ButtonSettings from "@/components/ButtonSettings/index";
 import TextInput from "@/components/TextInput";
 import ButtonUpload from "@/components/ButtonUpload";
 import RadialProgress from "@/components/RadialProgress";
+
+import { FILE_TYPE, PLACEHOLDER_IMAGE } from "@/libs/constants";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
@@ -16,8 +20,14 @@ import { IAlbum } from "@/interfaces/IAlbum";
 
 export default function Album() {
   const { isSignedIn } = useAuthValues();
-  const { isLoading, fetchAllAlbum, createAlbum, updateAlbum, deleteAlbum } =
-    useAlbum();
+  const {
+    isLoading,
+    loadingProgress,
+    fetchAllAlbum,
+    createAlbum,
+    updateAlbum,
+    deleteAlbum,
+  } = useAlbum();
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [albums, setAlbums] = useState<Array<IAlbum>>([]);
@@ -25,6 +35,7 @@ export default function Album() {
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFileUploaded, setImageFileUploaded] = useState<string>("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const clearFields = () => {
@@ -111,6 +122,7 @@ export default function Album() {
             if (index >= 0) {
               setName(albums[index].name);
               setDescription(albums[index].description);
+              setImageFileUploaded(albums[index].image ?? PLACEHOLDER_IMAGE);
               setImageFile(null);
               setSelectedId(id);
               setIsDetailViewOpened(true);
@@ -147,11 +159,12 @@ export default function Album() {
             />
           </div>
           <ButtonUpload
-            sname="Album Cover Image"
-            label=""
-            setValue={setImageFile}
-            placeholder="Upload Album Image"
-            accept_file="image/*"
+            id="album_cover_image"
+            label="Upload Album Cover Image"
+            file={imageFile}
+            setFile={setImageFile}
+            fileType={FILE_TYPE.IMAGE}
+            uploaded={imageFileUploaded}
           />
 
           <div className="flex space-x-2 mt-5">
@@ -172,8 +185,23 @@ export default function Album() {
         {isDetailViewOpened ? detailContentViiew : tableView}
 
         {isLoading && (
-          <div className="loading">
-            <RadialProgress width={50} height={50} />
+          <div className="loading w-[50px] h-[50px]">
+            {loadingProgress > 0 ? (
+              <div className="w-20 h-20">
+                <CircularProgressbar
+                  styles={buildStyles({
+                    pathColor: "#0052e4",
+                    textColor: "#ffffff",
+                    trailColor: "#888888",
+                  })}
+                  value={loadingProgress}
+                  maxValue={100}
+                  text={`${loadingProgress}%`}
+                />
+              </div>
+            ) : (
+              <RadialProgress width={50} height={50} />
+            )}
           </div>
         )}
       </div>

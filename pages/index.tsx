@@ -1,4 +1,5 @@
 import { KeyboardEvent, useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 
@@ -11,15 +12,28 @@ import Switch from "@/components/Switch";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import { TAG_PASSWORD, TAG_USERNAME } from "@/libs/constants";
+import useUser from "@/hooks/useUser";
+
+import {
+  TAG_PASSWORD,
+  TAG_USERNAME,
+  DEFAULT_LOGO_IMAGE,
+  FILE_TYPE,
+  PLACEHOLDER_IMAGE,
+} from "@/libs/constants";
+import { DEFAULT_HOMEPAGE, IHomepage } from "@/interfaces/IHomepage";
+import Link from "next/link";
 
 export default function Signin() {
   const router = useRouter();
   const { isLoading, isSignedIn, signIn } = useAuthValues();
+  const { fetchArtistData, fetchAdminBackground } = useUser();
 
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [rememberPassword, setRememberPassword] = useState<boolean>(false);
+  const [logoImage, setLogoImage] = useState<string>(DEFAULT_LOGO_IMAGE);
+  const [background, setBackground] = useState<IHomepage>(DEFAULT_HOMEPAGE);
 
   const onSignin = () => {
     if (isLoading) return;
@@ -73,13 +87,38 @@ export default function Signin() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSignedIn, router]);
 
+  useEffect(() => {
+    fetchArtistData().then((value) => {
+      if (value) {
+        setLogoImage(value.logoImage);
+      }
+    });
+
+    fetchAdminBackground().then((value) => {
+      if (value) {
+        setBackground(value);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <Layout>
-      <div className="relative w-full min-h-screen flex flex-col justify-end md:justify-center items-center bg-gradient-to-b from-activeSecondary to-activePrimary overflow-x-hidden overflow-y-auto">
+      <div className="relative w-full min-h-screen flex flex-col justify-end md:justify-center items-center bg-gradient-to-b from-activeSecondary to-activePrimary -mt-12 overflow-x-hidden overflow-y-auto">
         <div className="w-full h-full flex flex-col justify-end md:justify-center items-center z-10">
           <div className="w-full h-fit flex flex-col justify-end md:justify-center items-center text-primary pb-5">
+            <h3 className="text-center text-primary text-2xl mb-2">
+              <Image
+                className="w-56 object-cover mb-5"
+                src={logoImage ?? DEFAULT_LOGO_IMAGE}
+                width={311}
+                height={220}
+                alt=""
+                priority
+              />
+            </h3>
             <p className="text-center text-primary text-xl font-medium mb-5">
-              Administrator
+              Artist Dashboard
             </p>
             <div className="w-80 mb-5">
               <Input
@@ -124,10 +163,39 @@ export default function Signin() {
             <div className="mb-5">
               <ButtonOutline label="LOGIN" onClick={() => onSignin()} />
             </div>
+            <Link href="/forgotpassword">
+              <p className="text-center text-primary text-lg hover:underline transition-all duration-300 cursor-pointer">
+                Forgot Your Password?
+              </p>
+            </Link>
+          </div>
+        </div>
+
+        <div className="absolute left-0 top-0 w-full h-full overflow-hidden z-0">
+          <div className="absolute -left-4 -top-4 -right-4 -bottom-4">
+            {background.type == FILE_TYPE.IMAGE ? (
+              <Image
+                src={background.backgroundImage ?? PLACEHOLDER_IMAGE}
+                width={1600}
+                height={900}
+                className="w-full h-full object-cover object-center"
+                alt=""
+              />
+            ) : (
+              <div className="absolute -left-4 -top-4 -right-4 -bottom-4">
+                <video
+                  loop
+                  muted
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
+                  src={background.backgroundVideo}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
-
       {isLoading && <div className="loading"></div>}
     </Layout>
   );

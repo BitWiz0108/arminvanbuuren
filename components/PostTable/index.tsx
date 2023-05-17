@@ -9,6 +9,7 @@ import Comment from "@/components/Icons/Comment";
 import {
   DATETIME_FORMAT,
   DEFAULT_BANNER_IMAGE,
+  FILE_TYPE,
   IMAGE_MD_BLUR_DATA_URL,
 } from "@/libs/constants";
 
@@ -47,17 +48,30 @@ const PostTable = ({
             key={index}
             className="w-full mt-2 py-3 rounded-md px-5 border border-gray-700 flex flex-row justify-start items-center gap-1"
           >
-            <div className="w-[20%] min-w-[100px]">
-              <Image
-                className="w-24 h-12 object-cover rounded-md overflow-hidden"
-                src={value.image ?? DEFAULT_BANNER_IMAGE}
-                width={1600}
-                height={900}
-                alt=""
-                placeholder="blur"
-                blurDataURL={IMAGE_MD_BLUR_DATA_URL}
-              />
-            </div>
+            {value.type == FILE_TYPE.IMAGE ? (
+              <div className="w-[20%] min-w-[100px]">
+                <Image
+                  className="w-24 h-12 object-cover rounded-md overflow-hidden"
+                  src={value.image ?? DEFAULT_BANNER_IMAGE}
+                  width={1600}
+                  height={900}
+                  alt=""
+                  placeholder="blur"
+                  blurDataURL={IMAGE_MD_BLUR_DATA_URL}
+                />
+              </div>
+            ) : (
+              <div className="w-[20%] min-w-[100px]">
+                <video
+                  loop
+                  muted
+                  autoPlay
+                  playsInline
+                  className="w-24 h-12 object-cover rounded-md overflow-hidden"
+                  src={value.videoCompressed}
+                />
+              </div>
+            )}
             <div className="w-[75%] lg:w-[50%] truncate">{value.title}</div>
             <div className="w-[25%] hidden md:flex truncate">
               {moment(value.createdAt).format(DATETIME_FORMAT)}

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
 import Layout from "@/components/Layout";
 import ButtonSettings from "@/components/ButtonSettings/index";
@@ -16,11 +18,18 @@ import { DEFAULT_CURRENCY, ICurrency } from "@/interfaces/ICurrency";
 import useCurrency from "@/hooks/useCurrency";
 import Select from "@/components/Select";
 import PlanTable from "@/components/PlanTable";
+import { FILE_TYPE } from "@/libs/constants";
 
 export default function Plan() {
   const { isSignedIn } = useAuthValues();
-  const { isLoading, fetchPlans, createPlan, updatePlan, deletePlan } =
-    usePlan();
+  const {
+    isLoading,
+    loadingProgress,
+    fetchPlans,
+    createPlan,
+    updatePlan,
+    deletePlan,
+  } = usePlan();
   const { fetchCurrencies } = useCurrency();
 
   const [currencies, setCurrencies] = useState<Array<ICurrency>>([]);
@@ -28,6 +37,7 @@ export default function Plan() {
   const [plans, setPlans] = useState<Array<IPlan>>([]);
   const [isDetailViewOpened, setIsDetailViewOpened] = useState<boolean>(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFileUploaded, setImageFileUploaded] = useState<string>("");
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [price, setPrice] = useState<number>(5);
@@ -167,9 +177,11 @@ export default function Plan() {
             setIsEditing(true);
             const index = plans.findIndex((plan) => plan.id == id);
             if (index >= 0) {
+              console.log("!!!!", plans[index]);
               setName(plans[index].name);
               setDescription(plans[index].description);
               setImageFile(null);
+              setImageFileUploaded(plans[index].coverImage);
               setPrice(plans[index].price);
               setDuration(plans[index].duration);
               setCurrency(plans[index].currency);
@@ -240,11 +252,12 @@ export default function Plan() {
               />
             </div>
             <ButtonUpload
-              sname="Plan Cover Image"
-              label=""
-              setValue={setImageFile}
-              placeholder="Upload Cover Image"
-              accept_file="image/*"
+              id="upload_plan_cover_image"
+              label="Upload Plan Cover Image"
+              file={imageFile}
+              setFile={setImageFile}
+              fileType={FILE_TYPE.IMAGE}
+              uploaded={imageFileUploaded}
             />
 
             <div className="flex space-x-2 mt-5">
@@ -266,8 +279,23 @@ export default function Plan() {
         {isDetailViewOpened ? detailContentViiew : tableView}
 
         {isLoading && (
-          <div className="loading">
-            <RadialProgress width={50} height={50} />
+          <div className="loading w-[50px] h-[50px]">
+            {loadingProgress > 0 ? (
+              <div className="w-20 h-20">
+                <CircularProgressbar
+                  styles={buildStyles({
+                    pathColor: "#0052e4",
+                    textColor: "#ffffff",
+                    trailColor: "#888888",
+                  })}
+                  value={loadingProgress}
+                  maxValue={100}
+                  text={`${loadingProgress}%`}
+                />
+              </div>
+            ) : (
+              <RadialProgress width={50} height={50} />
+            )}
           </div>
         )}
       </div>

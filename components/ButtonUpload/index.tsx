@@ -1,17 +1,52 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
+
+import {
+  FILE_TYPE,
+  IMAGE_MD_BLUR_DATA_URL,
+  PLACEHOLDER_IMAGE,
+} from "@/libs/constants";
 
 type Props = {
+  id: string;
   label: string;
-  placeholder: string;
-  setValue: Function;
-  sname?: string;
-  id?: string;
-  accept_file?: string;
+  fileType: FILE_TYPE | null; // null means music
+  file: File | null;
+  setFile: Function;
+  uploaded?: string | null;
 };
 
-const ButtonUpload = ({ sname, id, accept_file, setValue }: Props) => {
+const ACCEPT_VIDEO = "video/*";
+const ACCEPT_AUDIO = "audio/*";
+const ACCEPT_IMAGE = "image/*";
+
+const ButtonUpload = ({
+  id,
+  label,
+  fileType,
+  file,
+  setFile,
+  uploaded = null,
+}: Props) => {
   const fileRef = useRef(null);
-  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [accept, setAccept] = useState<string>("*/");
+
+  useEffect(() => {
+    switch (fileType) {
+      case FILE_TYPE.IMAGE:
+        setAccept(ACCEPT_IMAGE);
+        break;
+      case FILE_TYPE.VIDEO:
+        setAccept(ACCEPT_VIDEO);
+        break;
+      case null:
+        setAccept(ACCEPT_AUDIO);
+        break;
+      default:
+        setAccept("*/*");
+    }
+  }, [fileType]);
 
   const onSelectFile = () => {
     if (fileRef) {
@@ -22,37 +57,128 @@ const ButtonUpload = ({ sname, id, accept_file, setValue }: Props) => {
 
   const onFileSelected = (files: FileList | null) => {
     if (files && files.length > 0) {
-      if (files[0]) {
-        setFile(files[0]);
-        setValue(files[0]);
+      const selectedFile = files[0];
+      if (selectedFile) {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          const preview: string = e.target?.result as string;
+          if (preview) {
+            setPreview(preview);
+          }
+        };
+
+        reader.readAsDataURL(selectedFile);
+        setFile(selectedFile);
       }
     }
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#24292d] rounded-lg p-5 my-1 space-y-1">
+    <div className="w-full h-full flex flex-col bg-[#24292d] rounded-lg p-5 my-1 space-y-2">
       <label htmlFor={id} className="w-full text-sm">
-        {sname}
+        {label}
       </label>
-      <div className="flex">
+      <div className="flex flex-col justify-center items-center space-y-2">
+        {preview ? (
+          fileType == FILE_TYPE.IMAGE ? (
+            <Image
+              className="w-full md:w-32 h-auto md:h-32 object-cover rounded-md"
+              src={preview ?? PLACEHOLDER_IMAGE}
+              width={1600}
+              height={900}
+              alt=""
+              placeholder="blur"
+              blurDataURL={IMAGE_MD_BLUR_DATA_URL}
+              priority
+            />
+          ) : fileType == FILE_TYPE.VIDEO ? (
+            <video
+              loop
+              muted
+              autoPlay
+              playsInline
+              className="w-full md:w-32 h-auto md:h-32 object-cover rounded-md"
+              src={preview}
+            />
+          ) : (
+            <div className="rounded-md">
+              <audio
+                className="h-10 w-max-72"
+                playsInline
+                controlsList="nodownload nopictureinpicture noplaybackrate"
+                controls
+                src={preview}
+              />
+            </div>
+          )
+        ) : uploaded ? (
+          fileType == FILE_TYPE.IMAGE ? (
+            <Image
+              className="w-full md:w-32 h-auto md:h-32 object-cover rounded-md"
+              src={uploaded ?? PLACEHOLDER_IMAGE}
+              width={1600}
+              height={900}
+              alt=""
+              placeholder="blur"
+              blurDataURL={IMAGE_MD_BLUR_DATA_URL}
+              priority
+            />
+          ) : fileType == FILE_TYPE.VIDEO ? (
+            <video
+              loop
+              muted
+              autoPlay
+              playsInline
+              className="w-full md:w-32 h-auto md:h-32 object-cover rounded-md"
+              src={uploaded}
+            />
+          ) : (
+            <div className="rounded-md">
+              <audio
+                className="h-10 w-max-72"
+                playsInline
+                controlsList="nodownload nopictureinpicture noplaybackrate"
+                controls
+                src={uploaded}
+              />
+            </div>
+          )
+        ) : (
+          <Image
+            className="w-full md:w-32 h-auto md:h-32 object-cover rounded-md"
+            src={PLACEHOLDER_IMAGE}
+            width={1600}
+            height={900}
+            alt=""
+            placeholder="blur"
+            blurDataURL={IMAGE_MD_BLUR_DATA_URL}
+            priority
+          />
+        )}
+
         <input
           ref={fileRef}
           type="file"
           className="hidden"
           onChange={(e) => onFileSelected(e.target.files)}
-          accept={accept_file}
+          accept={accept}
         />
-        <button
-          className="bg-white p-2 flex-grow overflow-hidden text-black text-md outline-none readonly font-bold cursor-pointer transition-all duration-300 rounded-tl-md rounded-bl-md truncate"
-          onClick={() => onSelectFile()}
-        >
-          {file && <span className="w-full truncate">{file.name}</span>}
-        </button>
-        <div
-          onClick={() => onSelectFile()}
-          className="bg-bluePrimary hover:bg-blueSecondary flex justify-center items-center py-2 px-5 text-md font-bold cursor-pointer rounded-tr-md rounded-br-md"
-        >
-          UPLOAD
+
+        <div className="w-full flex">
+          <div
+            className="bg-white p-2 flex-grow overflow-hidden text-black text-md outline-none readonly font-bold cursor-pointer transition-all duration-300 rounded-tl-md rounded-bl-md truncate"
+            onClick={() => onSelectFile()}
+          >
+            <span className="w-full truncate">{file ? file.name : label}</span>
+          </div>
+          <button
+            id={id}
+            onClick={() => onSelectFile()}
+            className="flex bg-bluePrimary hover:bg-blueSecondary py-2 px-5 text-md rounded-tr-md rounded-br-md justify-center items-center font-sans cursor-pointer"
+          >
+            UPLOAD
+          </button>
         </div>
       </div>
     </div>

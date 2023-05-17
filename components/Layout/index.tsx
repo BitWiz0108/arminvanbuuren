@@ -21,6 +21,7 @@ const Layout = ({ children }: LayoutProps) => {
 
   const {
     width,
+    sidebarWidth,
     contentWidth,
     isSidebarVisible,
     setIsSidebarVisible,
@@ -42,12 +43,18 @@ const Layout = ({ children }: LayoutProps) => {
     if (firstLoading) {
       return;
     }
-
-    if (!isSignedIn) {
-      toast.warn("Please sign in.");
-      router.push("/");
+    if (
+      router.pathname != "/" &&
+      router.pathname != "/signup" &&
+      router.pathname != "/forgotpassword" &&
+      !router.pathname.includes("/resetpassword") &&
+      !router.pathname.includes("/verifyemail")
+    ) {
+      if (!isSignedIn) {
+        toast.warn("Please sign in.");
+        router.push("/");
+      }
     }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firstLoading]);
 
@@ -63,7 +70,7 @@ const Layout = ({ children }: LayoutProps) => {
         <title>Admin</title>
         <meta name="description" content="Admin Website" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.jpg" />
       </Head>
 
       <main className="relative w-full min-h-screen flex flex-row justify-start items-start">
@@ -80,6 +87,11 @@ const Layout = ({ children }: LayoutProps) => {
 
         <Topbar visible={isTopbarVisible} setVisible={setIsTopbarVisible} />
         <Sidebar visible={isSidebarVisible} setVisible={setIsSidebarVisible} />
+
+        <div
+          className="transition-all duration-300 mr-[1px]"
+          style={{ width: `${sidebarWidth}px` }}
+        ></div>
 
         <div
           className="flex flex-row h-full border-l border-x-gray-700 justify-start pt-12 items-center overflow-hidden"

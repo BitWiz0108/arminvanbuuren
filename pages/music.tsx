@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
 import moment from "moment";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
 import Layout from "@/components/Layout";
 import ButtonSettings from "@/components/ButtonSettings";
@@ -18,10 +20,14 @@ import { useAuthValues } from "@/contexts/contextAuth";
 import useAlbum from "@/hooks/useAlbum";
 import useMusic from "@/hooks/useMusic";
 
-import { DATETIME_FORMAT } from "@/libs/constants";
+import { DATETIME_FORMAT, FILE_TYPE } from "@/libs/constants";
 
 import { IAlbum } from "@/interfaces/IAlbum";
-import { IMusic } from "@/interfaces/IMusic";
+import {
+  DEFAULT_MUSICQUERYPARAM,
+  IMusic,
+  IMusicQueryParam,
+} from "@/interfaces/IMusic";
 
 const TextAreaInput = dynamic(() => import("@/components/TextAreaInput"), {
   ssr: false,
@@ -30,15 +36,28 @@ const TextAreaInput = dynamic(() => import("@/components/TextAreaInput"), {
 export default function Music() {
   const { isSignedIn } = useAuthValues();
   const { fetchAllAlbum } = useAlbum();
-  const { isLoading, fetchMusic, createMusic, updateMusic, deleteMusic } =
-    useMusic();
+  const {
+    isLoading,
+    loadingProgress,
+    fetchMusic,
+    createMusic,
+    updateMusic,
+    deleteMusic,
+  } = useMusic();
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [albums, setAlbums] = useState<Array<IAlbum>>([]);
   const [isDetailViewOpened, setIsDetailedViewOpened] =
     useState<boolean>(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUploaded, setImageUploaded] = useState<string>("");
   const [musicFile, setMusicFile] = useState<File | null>(null);
+  const [musicFileUploaded, setMusicFileUploaded] = useState<string>("");
+  const [musicFileCompressed, setMusicFileCompressed] = useState<File | null>(
+    null
+  );
+  const [musicFileCompressedUploaded, setMusicFileCompressedUploaded] =
+    useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [isExclusive, setIsExclusive] = useState<boolean>(false);
   const [albumId, setAlbumId] = useState<number | null>(null);
@@ -54,10 +73,18 @@ export default function Music() {
   const [page, setPage] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [musics, setMusics] = useState<Array<IMusic>>([]);
+  const [queryParams, setQueryParams] = useState<IMusicQueryParam>(
+    DEFAULT_MUSICQUERYPARAM
+  );
+
+  const changeQueryParam = (key: string, value: number | string) => {
+    setQueryParams({ ...queryParams, [key]: value });
+  };
 
   const clearFields = () => {
     setImageFile(null);
     setMusicFile(null);
+    setMusicFileCompressed(null);
     setTitle("");
     setIsExclusive(false);
     setAlbumId(null);
@@ -73,14 +100,11 @@ export default function Music() {
     const duration = minutes * 60 + seconds;
     if (
       (!isEditing && !imageFile) ||
-      (!isEditing && !musicFile) ||
+      // (!isEditing && !musicFile) ||
+      // (!isEditing && !musicFileCompressed) ||
       !title ||
-      !releaseDate ||
-      !copyright ||
       !lyrics ||
-      !description ||
-      duration == 0 ||
-      duration < 0
+      !description
     ) {
       toast.warn("Please type values correctly.");
       return;
@@ -91,6 +115,7 @@ export default function Music() {
         selectedId,
         imageFile,
         musicFile,
+        musicFileCompressed,
         isExclusive,
         albumId,
         duration,
@@ -113,6 +138,7 @@ export default function Music() {
       createMusic(
         imageFile!,
         musicFile!,
+        musicFileCompressed!,
         isExclusive,
         albumId == null ? null : albumId < 0 ? null : albumId,
         duration,
@@ -127,17 +153,15 @@ export default function Music() {
         if (value) {
           clearFields();
           fetchMusics();
-
           toast.success("Successfully added!");
         }
       });
     }
-
     setIsDetailedViewOpened(false);
   };
 
   const fetchMusics = () => {
-    fetchMusic(page).then((data) => {
+    fetchMusic(queryParams).then((data) => {
       if (data) {
         setTotalCount(data.pages);
         setMusics(data.musics);
@@ -149,9 +173,16 @@ export default function Music() {
     if (isSignedIn) {
       fetchMusics();
     }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSignedIn, page]);
+  }, [
+    isSignedIn,
+    queryParams.page,
+    queryParams.limit,
+    queryParams.albumName,
+    queryParams.artistName,
+    queryParams.releaseDate,
+    queryParams.title,
+  ]);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -181,8 +212,8 @@ export default function Music() {
       <div className="w-full p-5">
         <MusicTable
           musics={musics}
-          page={page}
-          setPage={(value: number) => setPage(value)}
+          queryParam={queryParams}
+          changeQueryParam={changeQueryParam}
           totalCount={totalCount}
           deleteMusic={(id: number) =>
             deleteMusic(id).then((value) => {
@@ -198,7 +229,11 @@ export default function Music() {
             const index = musics.findIndex((music) => music.id == id);
             if (index >= 0) {
               setImageFile(null);
+              setImageUploaded(musics[index].coverImage);
               setMusicFile(null);
+              setMusicFileUploaded(musics[index].musicFile);
+              setMusicFileCompressed(null);
+              setMusicFileCompressedUploaded(musics[index].musicFileCompressed);
               setTitle(musics[index].title);
               setIsExclusive(musics[index].isExclusive);
               setAlbumId(musics[index].albumId);
@@ -231,7 +266,7 @@ export default function Music() {
           <div className="w-full px-0 flex flex-col">
             <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 md:space-x-2">
               <TextInput
-                sname="Music Title"
+                sname="Music Title *"
                 label=""
                 placeholder="Enter Music Title"
                 type="text"
@@ -282,14 +317,14 @@ export default function Music() {
             </div>
             <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 md:space-x-2">
               <TextAreaInput
-                id="Lyrics"
+                id="Lyrics *"
                 sname="Lyrics"
                 placeholder="Enter Lyrics here"
                 value={lyrics}
                 setValue={setLyrics}
               />
               <TextAreaInput
-                id="Description"
+                id="Description *"
                 sname="Description"
                 placeholder="Enter Description"
                 value={description}
@@ -297,22 +332,36 @@ export default function Music() {
               />
             </div>
             <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2 space-y-2 lg:space-y-0">
+              <div className="w-full">
+                <ButtonUpload
+                  id="upload_cover_image"
+                  label="Upload Cover Image"
+                  file={imageFile}
+                  setFile={setImageFile}
+                  fileType={FILE_TYPE.IMAGE}
+                  uploaded={imageUploaded}
+                />
+              </div>
+            </div>
+            <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2 space-y-2 lg:space-y-0">
               <div className="w-full lg:w-1/2">
                 <ButtonUpload
-                  sname="Cover Image"
-                  label=""
-                  placeholder="Select cover image file"
-                  accept_file="image/*"
-                  setValue={setImageFile}
+                  id="upload_high_quality_music"
+                  label="Upload High Quality Music"
+                  file={musicFile}
+                  setFile={setMusicFile}
+                  fileType={null}
+                  uploaded={musicFileUploaded}
                 />
               </div>
               <div className="w-full lg:w-1/2">
                 <ButtonUpload
-                  sname="Music"
-                  label=""
-                  placeholder="Select music file"
-                  accept_file="audio/*"
-                  setValue={setMusicFile}
+                  id="upload_low_quality_music"
+                  label="Upload Low Quality Music"
+                  file={musicFileCompressed}
+                  setFile={setMusicFileCompressed}
+                  fileType={null}
+                  uploaded={musicFileCompressedUploaded}
                 />
               </div>
             </div>
@@ -355,8 +404,23 @@ export default function Music() {
       </div>
 
       {isLoading && (
-        <div className="loading">
-          <RadialProgress width={50} height={50} />
+        <div className="loading w-[50px] h-[50px]">
+          {loadingProgress > 0 ? (
+            <div className="w-20 h-20">
+              <CircularProgressbar
+                styles={buildStyles({
+                  pathColor: "#0052e4",
+                  textColor: "#ffffff",
+                  trailColor: "#888888",
+                })}
+                value={loadingProgress}
+                maxValue={100}
+                text={`${loadingProgress}%`}
+              />
+            </div>
+          ) : (
+            <RadialProgress width={50} height={50} />
+          )}
         </div>
       )}
     </Layout>

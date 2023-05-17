@@ -26,14 +26,24 @@ import {
 } from "@/libs/constants";
 import { checkContainsSpecialCharacters } from "@/libs/utils";
 
-import { IUser } from "@/interfaces/IUser";
+import {
+  DEFAULT_USERQUERYPARAM,
+  IUser,
+  IUserQueryParam,
+} from "@/interfaces/IUser";
 
 export default function User() {
   const avatarImageRef = useRef(null);
 
   const { isSignedIn } = useAuthValues();
-  const { isLoading, fetchUsers, updateUser, deleteUser, fetchLocation } =
-    useUser();
+  const {
+    isLoading,
+    fetchUsers,
+    addUser,
+    updateUser,
+    deleteUser,
+    fetchLocation,
+  } = useUser();
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [users, setUsers] = useState<Array<IUser>>([]);
@@ -57,6 +67,15 @@ export default function User() {
   const [page, setPage] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [password, setPassword] = useState<string>("");
+  const [passwordConfirm, setPasswordConfirm] = useState<string>("");
+  const [queryParams, setQueryParams] = useState<IUserQueryParam>(
+    DEFAULT_USERQUERYPARAM
+  );
+
+  const changeQueryParam = (key: string, value: number | string) => {
+    setQueryParams({ ...queryParams, [key]: value });
+  };
 
   const clearFields = () => {
     setUsername("");
@@ -112,13 +131,37 @@ export default function User() {
           toast.success("Successfully updated!");
         }
       });
+    } else if (!isEditing) {
+      addUser(
+        username,
+        firstName,
+        lastName,
+        email,
+        password,
+        avatarImageFile,
+        gender,
+        dob,
+        status,
+        address,
+        country,
+        state,
+        city,
+        zipcode
+      ).then((value) => {
+        if (value) {
+          clearFields();
+          fetchUserList();
+
+          toast.success("Successfully added!");
+        }
+      });
     }
 
     setIsDetailViewOpened(false);
   };
 
   const fetchUserList = () => {
-    fetchUsers(page).then((value) => {
+    fetchUsers(queryParams).then((value) => {
       if (value) {
         setTotalCount(value.pages);
         setUsers(value.users);
@@ -132,15 +175,37 @@ export default function User() {
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSignedIn, page]);
+  }, [
+    isSignedIn,
+    isSignedIn,
+    queryParams.page,
+    queryParams.limit,
+    queryParams.fullName,
+    queryParams.email,
+    queryParams.status,
+    queryParams.createdAt,
+  ]);
 
   const tableView = (
     <div className="w-full">
+      <div className="w-full flex justify-end items-center p-5">
+        <div className="w-40">
+          <ButtonSettings
+            label="Add"
+            bgColor="cyan"
+            onClick={() => {
+              clearFields();
+              setIsEditing(false);
+              setIsDetailViewOpened(true);
+            }}
+          />
+        </div>
+      </div>
       <div className="w-full p-5 pt-10">
         <UserTable
           users={users}
-          page={page}
-          setPage={(value: number) => setPage(value)}
+          queryParam={queryParams}
+          changeQueryParam={changeQueryParam}
           totalCount={totalCount}
           deleteUser={(id: number) =>
             deleteUser(id).then((value) => {
@@ -283,6 +348,18 @@ export default function User() {
                 setValue={setEmail}
               />
             </div>
+            {!isEditing && (
+              <div className="w-full flex">
+                <TextInput
+                  sname="Password"
+                  label=""
+                  placeholder="Password"
+                  type="text"
+                  value={password}
+                  setValue={setPassword}
+                />
+              </div>
+            )}{" "}
           </div>
 
           <div className="w-full flex flex-col lg:flex-row space-x-0 lg:space-x-5">
@@ -309,7 +386,7 @@ export default function User() {
             </div>
           </div>
 
-          <div className="w-full flex flex-col xl:flex-row space-x-0 xl:space-x-5">
+          <div className="w-full flex flex-col lg:flex-row space-x-0 lg:space-x-5">
             <TextInput
               sname="Zip code"
               label=""
@@ -340,7 +417,7 @@ export default function User() {
             />
           </div>
 
-          <div className="w-full flex flex-col xl:flex-row space-x-0 xl:space-x-5">
+          <div className="w-full flex flex-col lg:flex-row space-x-0 lg:space-x-5">
             <TextInput
               sname="Country"
               label=""

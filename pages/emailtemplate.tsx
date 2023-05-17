@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import dynamic from "next/dynamic";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
+
+import {
+  EMAIL_TEMPLATE_TYPE,
+  FILE_TYPE,
+  PLACEHOLDER_IMAGE,
+} from "@/libs/constants";
 
 import Layout from "@/components/Layout";
 import TextInput from "@/components/TextInput";
@@ -13,8 +21,6 @@ import { useAuthValues } from "@/contexts/contextAuth";
 
 import useEmailTemplate from "@/hooks/useEmailTemplate";
 
-import { EMAIL_TEMPLATE_TYPE } from "@/libs/constants";
-
 const TextAreaInput = dynamic(() => import("@/components/TextAreaInput"), {
   ssr: false,
 });
@@ -22,8 +28,12 @@ const TextAreaInput = dynamic(() => import("@/components/TextAreaInput"), {
 export default function EmailTemplate() {
   const { isSignedIn } = useAuthValues();
 
-  const { isLoading, fetchEmailTemplate, updateEmailTemplate } =
-    useEmailTemplate();
+  const {
+    isLoading,
+    loadingProgress,
+    fetchEmailTemplate,
+    updateEmailTemplate,
+  } = useEmailTemplate();
 
   const [emailType, setEmailType] = useState<EMAIL_TEMPLATE_TYPE>(
     EMAIL_TEMPLATE_TYPE.THANK
@@ -35,6 +45,7 @@ export default function EmailTemplate() {
   const [subject, setSubject] = useState<string>("");
   const [content, setContent] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFileUploaded, setImageFileUploaded] = useState<string>("");
 
   const onSaveTemplate = () => {
     updateEmailTemplateData();
@@ -49,6 +60,7 @@ export default function EmailTemplate() {
         setFromName(value.fromName);
         setSubject(value.subject);
         setContent(value.content);
+        setImageFileUploaded(value.logoImage ?? PLACEHOLDER_IMAGE);
       }
     });
   };
@@ -172,11 +184,12 @@ export default function EmailTemplate() {
                 setValue={setContent}
               />
               <ButtonUpload
-                sname="Email Logo Image"
-                label=""
-                setValue={setImageFile}
-                placeholder="Upload Logo Image"
-                accept_file="image/*"
+                id="upload_email_logo_image"
+                label="Upload Email Logo Image"
+                file={imageFile}
+                setFile={setImageFile}
+                fileType={FILE_TYPE.IMAGE}
+                uploaded={imageFileUploaded}
               />
             </div>
 
@@ -192,8 +205,23 @@ export default function EmailTemplate() {
       </div>
 
       {isLoading && (
-        <div className="loading">
-          <RadialProgress width={50} height={50} />
+        <div className="loading w-[50px] h-[50px]">
+          {loadingProgress > 0 ? (
+            <div className="w-20 h-20">
+              <CircularProgressbar
+                styles={buildStyles({
+                  pathColor: "#0052e4",
+                  textColor: "#ffffff",
+                  trailColor: "#888888",
+                })}
+                value={loadingProgress}
+                maxValue={100}
+                text={`${loadingProgress}%`}
+              />
+            </div>
+          ) : (
+            <RadialProgress width={50} height={50} />
+          )}
         </div>
       )}
     </Layout>

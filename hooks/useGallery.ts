@@ -1,14 +1,21 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import { API_BASE_URL, API_VERSION, IMAGE_SIZE } from "@/libs/constants";
+import {
+  API_BASE_URL,
+  API_VERSION,
+  FILE_TYPE,
+  IMAGE_SIZE,
+} from "@/libs/constants";
 
 import { IGallery } from "@/interfaces/IGallery";
 
 const useGallery = () => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { accessToken } = useAuthValues();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadingProgress, setLoadingProgress] = useState<number>(0);
 
   const fetchImages = async () => {
     setIsLoading(true);
@@ -34,73 +41,145 @@ const useGallery = () => {
   };
 
   const addImage = async (
-    imageFile: File,
+    galleryImageType: FILE_TYPE,
+    imageFile: File | null,
+    imageFileCompressed: File | null,
+    videoFile: File | null,
+    videoFileCompressed: File | null,
     size: IMAGE_SIZE,
     description: string
-  ) => {
-    setIsLoading(true);
+  ): Promise<IGallery | null> => {
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
+      setLoadingProgress(0);
 
-    const formData = new FormData();
-    formData.append("imageFile", imageFile);
-    formData.append("size", size);
-    formData.append("description", description);
+      const formData = new FormData();
+      const nullFile = new File([""], "garbage.bin");
 
-    const response = await fetch(
-      `${API_BASE_URL}/${API_VERSION}/admin/gallery`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: formData,
+      formData.append("type", galleryImageType);
+      if (galleryImageType == FILE_TYPE.IMAGE) {
+        formData.append("files", imageFile ?? nullFile);
+        formData.append("files", imageFileCompressed ?? nullFile);
+      } else if (galleryImageType == FILE_TYPE.VIDEO) {
+        formData.append("files", videoFile ?? nullFile);
+        formData.append("files", videoFileCompressed ?? nullFile);
       }
-    );
-    if (response.ok) {
-      setIsLoading(false);
-      const data = await response.json();
-      return data as IGallery;
-    } else {
-      setIsLoading(false);
-      return null;
-    }
+      formData.append("size", size);
+      formData.append("description", description);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${API_BASE_URL}/${API_VERSION}/admin/gallery`);
+
+      xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          setLoadingProgress(percentCompleted);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 202) {
+          setIsLoading(false);
+          const data = JSON.parse(xhr.response);
+          const music = data as IGallery;
+
+          resolve(music);
+        } else {
+          if (xhr.status === 500) {
+            toast.error("Error occurred while creating music.");
+            setIsLoading(false);
+          } else {
+            const data = JSON.parse(xhr.responseText);
+            toast.error(data.message);
+            setIsLoading(false);
+          }
+
+          reject(xhr.statusText);
+        }
+      };
+
+      xhr.onloadend = () => {
+        setLoadingProgress(0);
+      };
+      xhr.send(formData);
+    });
   };
 
   const updateImage = async (
     id: number | null,
+    galleryImageType: FILE_TYPE,
     imageFile: File | null,
+    imageFileCompressed: File | null,
+    videoFile: File | null,
+    videoFileCompressed: File | null,
     size: IMAGE_SIZE,
     description: string
-  ) => {
-    setIsLoading(true);
+  ): Promise<IGallery | null> => {
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
+      setLoadingProgress(0);
 
-    const nullFile = new File([""], "garbage.bin");
+      const nullFile = new File([""], "garbage.bin");
 
-    const formData = new FormData();
-    if (id) formData.append("id", id.toString());
-    else formData.append("id", "");
-    if (imageFile) formData.append("imageFile", imageFile);
-    else formData.append("imageFile", nullFile);
-    formData.append("size", size);
-    formData.append("description", description);
-
-    const response = await fetch(
-      `${API_BASE_URL}/${API_VERSION}/admin/gallery`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: formData,
+      const formData = new FormData();
+      if (id) formData.append("id", id.toString());
+      else formData.append("id", "");
+      formData.append("type", galleryImageType);
+      if (galleryImageType == FILE_TYPE.IMAGE) {
+        formData.append("files", imageFile ?? nullFile);
+        formData.append("files", imageFileCompressed ?? nullFile);
+      } else if (galleryImageType == FILE_TYPE.VIDEO) {
+        formData.append("files", videoFile ?? nullFile);
+        formData.append("files", videoFileCompressed ?? nullFile);
       }
-    );
-    if (response.ok) {
-      setIsLoading(false);
-      const data = await response.json();
-      return data as IGallery;
-    } else {
-      setIsLoading(false);
-      return null;
-    }
+      formData.append("size", size);
+      formData.append("description", description);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/gallery`);
+
+      xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          setLoadingProgress(percentCompleted);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 202) {
+          setIsLoading(false);
+          const data = JSON.parse(xhr.response);
+          const music = data as IGallery;
+          resolve(music);
+        } else {
+          if (xhr.status === 500) {
+            toast.error("Error occurred while creating music.");
+            setIsLoading(false);
+          } else {
+            const data = JSON.parse(xhr.responseText);
+            toast.error(data.message);
+            setIsLoading(false);
+          }
+
+          reject(xhr.statusText);
+        }
+      };
+
+      xhr.onloadend = () => {
+        setLoadingProgress(0);
+      };
+      xhr.send(formData);
+    });
   };
 
   const deleteImage = async (id: number | null) => {
@@ -126,7 +205,14 @@ const useGallery = () => {
     return false;
   };
 
-  return { isLoading, fetchImages, addImage, updateImage, deleteImage };
+  return {
+    isLoading,
+    loadingProgress,
+    fetchImages,
+    addImage,
+    updateImage,
+    deleteImage,
+  };
 };
 
 export default useGallery;

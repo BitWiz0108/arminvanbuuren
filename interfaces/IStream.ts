@@ -1,4 +1,5 @@
 import { DEFAULT_COVER_IMAGE } from "@/libs/constants";
+import { ICategory } from "./ICategory";
 
 export interface IStream {
   id: number | null;
@@ -8,12 +9,16 @@ export interface IStream {
   creator: any;
   releaseDate: string;
   previewVideo: string;
+  previewVideoCompressed: string;
   fullVideo: string;
+  fullVideoCompressed: string;
   description: string;
   duration: number;
   shortDescription: string;
   lyrics: string;
   isExclusive: boolean;
+  categoryId: number | null;
+  category: ICategory | null;
   favorites: any;
 }
 
@@ -25,10 +30,31 @@ export const DEFAULT_ISTREAM = {
   creator: null,
   releaseDate: "",
   previewVideo: "",
+  previewVideoCompressed: "",
   fullVideo: "",
+  fullVideoCompressed: "",
   description: "",
   duration: 0,
   shortDescription: "",
   lyrics: "",
   isExclusive: false,
+  categoryId: null,
 } as IStream;
+
+export interface IStreamQueryParam {
+  page: number;
+  limit: number;
+  title: "ASC" | "DESC" | "";
+  categoryName: "ASC" | "DESC" | "";
+  releaseDate: "ASC" | "DESC" | "";
+  artistName: "ASC" | "DESC" | "";
+}
+
+export const DEFAULT_STREAMQUERYPARAM = {
+  page: 1,
+  limit: 10,
+  title: "",
+  categoryName: "",
+  releaseDate: "",
+  artistName: "",
+} as IStreamQueryParam;

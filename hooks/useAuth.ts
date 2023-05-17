@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-import { API_BASE_URL, API_VERSION, DEFAULT_AVATAR_IMAGE, TAG_ACCESS_TOKEN } from "@/libs/constants";
+import { API_BASE_URL, API_VERSION, TAG_ACCESS_TOKEN } from "@/libs/constants";
 
 import { IUser } from "@/interfaces/IUser";
 import { DEFAULT_USER } from "@/interfaces/IUser";
-
-import { getAWSSignedURL } from "@/libs/aws";
 
 const useAuth = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -51,10 +49,7 @@ const useAuth = () => {
         setIsSignedIn(false);
         return false;
       }
-      data.user.avatarImage = await getAWSSignedURL(
-        data.user.avatarImage,
-        DEFAULT_AVATAR_IMAGE
-      );
+
       setUser(data.user as IUser);
       setIsSignedIn(true);
 
@@ -121,10 +116,6 @@ const useAuth = () => {
         window.localStorage.setItem(TAG_ACCESS_TOKEN, data.accessToken);
 
         setAcessToken(data.accessToken);
-        data.user.avatarImage = await getAWSSignedURL(
-          data.user.avatarImage,
-          DEFAULT_AVATAR_IMAGE
-        );
         setUser(data.user);
 
         setIsSignedIn(true);
@@ -162,6 +153,44 @@ const useAuth = () => {
     setAcessToken("");
 
     setIsSignedIn(false);
+  };
+
+  const forgotPassword = async (email: string) => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `${API_BASE_URL}/${API_VERSION}/auth/forgot-password`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+        }),
+      }
+    );
+
+    if (response.ok) {
+      setIsLoading(false);
+
+      toast.success(
+        "Password reset link is sent to your email. Please check your inbox."
+      );
+      return true;
+    } else {
+      if (response.status == 500) {
+        toast.error("Error occured on forgetting password.");
+      } else {
+        const data = await response.json();
+        toast.error(
+          data.message ? data.message : "Error occured on forgetting password."
+        );
+      }
+
+      setIsLoading(false);
+    }
+    return false;
   };
 
   const resetPassword = async (email: string) => {
@@ -203,6 +232,80 @@ const useAuth = () => {
     return false;
   };
 
+  const verifyEmail = async (token: string) => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `${API_BASE_URL}/${API_VERSION}/auth/verify-email`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token,
+        }),
+      }
+    );
+
+    if (response.ok) {
+      setIsLoading(false);
+
+      toast.success("Email is successfully verified. Please sign in again.");
+      return true;
+    } else {
+      if (response.status == 500) {
+        toast.error("Error occured on verifying email.");
+      } else {
+        const data = await response.json();
+        toast.error(
+          data.message ? data.message : "Error occured on verifying email."
+        );
+      }
+
+      setIsLoading(false);
+    }
+    return false;
+  };
+
+  const resendVerificationLink = async (email: string) => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `${API_BASE_URL}/${API_VERSION}/auth/resend-verification-link`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+        }),
+      }
+    );
+
+    if (response.ok) {
+      setIsLoading(false);
+
+      toast.success("Verification link is resent. Please check your inbox.");
+      return true;
+    } else {
+      if (response.status == 500) {
+        toast.error("Error occured on resending verification link.");
+      } else {
+        const data = await response.json();
+        toast.error(
+          data.message
+            ? data.message
+            : "Error occured on resending verification link."
+        );
+      }
+
+      setIsLoading(false);
+    }
+    return false;
+  };
+
   return {
     isLoading,
     accessToken,
@@ -212,7 +315,10 @@ const useAuth = () => {
     signUp,
     signIn,
     signOut,
+    forgotPassword,
     resetPassword,
+    verifyEmail,
+    resendVerificationLink,
   };
 };
 

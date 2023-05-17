@@ -36,7 +36,7 @@ const AlbumTable = ({ albums, deleteAlbum, updateAlbum }: Props) => {
           >
             <div className="w-[15%] min-w-[100px]">
               <Image
-                className="w-15 object-cover rounded-full"
+                className="w-16 h-16 object-cover rounded-full"
                 src={value.image ?? DEFAULT_COVER_IMAGE}
                 width={64}
                 height={64}

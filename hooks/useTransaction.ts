@@ -2,12 +2,7 @@ import { useState } from "react";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import {
-  API_BASE_URL,
-  API_VERSION,
-  DEFAULT_AVATAR_IMAGE,
-} from "@/libs/constants";
-import { getAWSSignedURL } from "@/libs/aws";
+import { API_BASE_URL, API_VERSION } from "@/libs/constants";
 
 import { ITransaction } from "@/interfaces/ITransaction";
 
@@ -30,16 +25,7 @@ const useTransaction = () => {
     if (response.ok) {
       const data = await response.json();
       const transactions = data.transactions as Array<ITransaction>;
-      const avatarImagePromises = transactions.map((transaction) => {
-        return getAWSSignedURL(
-          transaction.buyer.avatarImage,
-          DEFAULT_AVATAR_IMAGE
-        );
-      });
-      const avatarImages = await Promise.all(avatarImagePromises);
-      transactions.forEach((transaction, index) => {
-        transaction.buyer.avatarImage = avatarImages[index];
-      });
+
       const pages = Number(data.pages);
 
       setIsLoading(false);

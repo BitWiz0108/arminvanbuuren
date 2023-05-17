@@ -3,6 +3,8 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
 import moment from "moment";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
 import Layout from "@/components/Layout";
 import LivestreamTable from "@/components/LivestreamTable";
@@ -15,19 +17,27 @@ import DateInput from "@/components/DateInput";
 import X from "@/components/Icons/X";
 import Reply from "@/components/Icons/Reply";
 import Delete from "@/components/Icons/Delete";
+import Select from "@/components/Select";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
 import useLivestream from "@/hooks/useLivestream";
+import useCategory from "@/hooks/useCategory";
 
 import {
   DATETIME_FORMAT,
   DEFAULT_AVATAR_IMAGE,
+  FILE_TYPE,
   IMAGE_SM_BLUR_DATA_URL,
 } from "@/libs/constants";
 
-import { IStream } from "@/interfaces/IStream";
+import {
+  DEFAULT_STREAMQUERYPARAM,
+  IStream,
+  IStreamQueryParam,
+} from "@/interfaces/IStream";
 import { IComment } from "@/interfaces/IComment";
+import { ICategory } from "@/interfaces/ICategory";
 
 const TextAreaInput = dynamic(() => import("@/components/TextAreaInput"), {
   ssr: false,
@@ -35,8 +45,10 @@ const TextAreaInput = dynamic(() => import("@/components/TextAreaInput"), {
 
 export default function Livestream() {
   const { isSignedIn } = useAuthValues();
+  const { fetchAllCategory } = useCategory();
   const {
     isLoading,
+    loadingProgress,
     fetchLivestream,
     createLivestream,
     updateLivestream,
@@ -47,9 +59,11 @@ export default function Livestream() {
   } = useLivestream();
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [categories, setCategories] = useState<Array<ICategory>>([]);
   const [livestreams, setLivestreams] = useState<Array<IStream>>([]);
   const [title, setTitle] = useState<string>("");
   const [isExclusive, setIsExclusive] = useState<boolean>(false);
+  const [categoryId, setCategoryId] = useState<number | null>(null);
   const [releaseDate, setReleaseDate] = useState<string>(
     moment().format(DATETIME_FORMAT)
   );
@@ -59,8 +73,25 @@ export default function Livestream() {
   const [seconds, setSeconds] = useState<number>(0);
   const [shortDescription, setShortDescription] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFileUploaded, setImageFileUploaded] = useState<string>("");
   const [previewVideoFile, setPreviewVideoFile] = useState<File | null>(null);
+  const [previewVideoFileUploaded, setPreviewVideoFileUploaded] =
+    useState<string>("");
+
+  const [previewVideoFileCompressed, setPreviewVideoFileCompressed] =
+    useState<File | null>(null);
+  const [
+    previewVideoFileCompressedUploaded,
+    setPreviewVideoFileCompressedUploaded,
+  ] = useState<string>("");
   const [fulllVideoFile, setFullVideoFile] = useState<File | null>(null);
+  const [fulllVideoFileUploaded, setFullVideoFileUploaded] =
+    useState<string>("");
+
+  const [fulllVideoFileCompressed, setFullVideoFileCompressed] =
+    useState<File | null>(null);
+  const [fulllVideoFileCompressedUploaded, setFullVideoFileCompressedUploaded] =
+    useState<string>("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [page, setPage] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -72,12 +103,22 @@ export default function Livestream() {
   const [replyContent, setReplyContent] = useState<string>("");
   const [commentPageCount, setCommentPageCount] = useState<number>(1);
   const [commentPage, setCommentPage] = useState<number>(1);
+  const [queryParams, setQueryParams] = useState<IStreamQueryParam>(
+    DEFAULT_STREAMQUERYPARAM
+  );
+
+  const changeQueryParam = (key: string, value: number | string) => {
+    setQueryParams({ ...queryParams, [key]: value });
+  };
 
   const clearFields = () => {
     setImageFile(null);
     setPreviewVideoFile(null);
+    setPreviewVideoFileCompressed(null);
     setFullVideoFile(null);
+    setFullVideoFileCompressed(null);
     setTitle("");
+    setCategoryId(null);
     setReleaseDate(moment().format(DATETIME_FORMAT));
     setLyrics("");
     setDescription("");
@@ -92,11 +133,11 @@ export default function Livestream() {
     if (
       (!isEditing && !imageFile) ||
       (!isEditing && !previewVideoFile) ||
+      (!isEditing && !previewVideoFileCompressed) ||
       (!isEditing && !fulllVideoFile) ||
+      (!isEditing && !fulllVideoFileCompressed) ||
       !title ||
-      !releaseDate ||
-      !description ||
-      duration <= 0
+      !description
     ) {
       toast.warn("Please type values correctly.");
       return;
@@ -107,8 +148,11 @@ export default function Livestream() {
         selectedId,
         imageFile,
         previewVideoFile,
+        previewVideoFileCompressed,
         fulllVideoFile,
+        fulllVideoFileCompressed,
         title,
+        categoryId,
         releaseDate,
         description,
         duration,
@@ -127,8 +171,11 @@ export default function Livestream() {
       createLivestream(
         imageFile!,
         previewVideoFile!,
+        previewVideoFileCompressed!,
         fulllVideoFile!,
+        fulllVideoFileCompressed!,
         title,
+        categoryId == null ? null : categoryId < 0 ? null : categoryId,
         releaseDate,
         description,
         duration,
@@ -149,7 +196,7 @@ export default function Livestream() {
   };
 
   const fetchLivestreams = () => {
-    fetchLivestream(page).then((data) => {
+    fetchLivestream(queryParams).then((data) => {
       if (data) {
         setTotalCount(data.pages);
         setLivestreams(data.livestreams);
@@ -163,7 +210,15 @@ export default function Livestream() {
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSignedIn, page]);
+  }, [
+    isSignedIn,
+    queryParams.page,
+    queryParams.limit,
+    queryParams.categoryName,
+    queryParams.artistName,
+    queryParams.releaseDate,
+    queryParams.title,
+  ]);
 
   const reply = () => {
     writeComment(selectedId, replyContent).then((value) => {
@@ -197,6 +252,16 @@ export default function Livestream() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, isCommentViewOpened]);
 
+  useEffect(() => {
+    if (isSignedIn) {
+      fetchAllCategory().then((data) => {
+        setCategories(data);
+      });
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSignedIn]);
+
   const tableView = (
     <div className="w-full">
       <div className="w-full flex justify-end items-center p-5">
@@ -215,8 +280,8 @@ export default function Livestream() {
       <div className="w-full p-5">
         <LivestreamTable
           livestreams={livestreams}
-          page={page}
-          setPage={(value: number) => setPage(value)}
+          queryParam={queryParams}
+          changeQueryParam={changeQueryParam}
           totalCount={totalCount}
           deleteLivestream={(id: number) =>
             deleteLivestream(id).then((value) => {
@@ -232,9 +297,21 @@ export default function Livestream() {
             const index = livestreams.findIndex((stream) => stream.id == id);
             if (index >= 0) {
               setImageFile(null);
+              setImageFileUploaded(livestreams[index].coverImage);
               setPreviewVideoFile(null);
+              setPreviewVideoFileUploaded(livestreams[index].previewVideo);
+              setPreviewVideoFileCompressed(null);
+              setPreviewVideoFileCompressedUploaded(
+                livestreams[index].previewVideoCompressed
+              );
               setFullVideoFile(null);
+              setFullVideoFileUploaded(livestreams[index].fullVideo);
+              setFullVideoFileCompressed(null);
+              setFullVideoFileCompressedUploaded(
+                livestreams[index].fullVideoCompressed
+              );
               setTitle(livestreams[index].title);
+              setCategoryId(livestreams[index].categoryId);
               setReleaseDate(
                 livestreams[index].releaseDate ??
                   moment().format(DATETIME_FORMAT)
@@ -261,7 +338,7 @@ export default function Livestream() {
   );
 
   const commentView = (
-    <div className="relative w-full xl:w-4/5 2xl:w-2/3 justify-center items-center p-5">
+    <div className="relative w-full lg:w-4/5 2xl:w-2/3 justify-center items-center p-5">
       <div className="relative mt-16 p-5 bg-[#2f363e] flex flex-col space-y-5 rounded-lg">
         <div className="absolute top-2 right-2 text-primary cursor-pointer">
           <X
@@ -379,16 +456,16 @@ export default function Livestream() {
         </label>
         <div className="flex">
           <div className="w-full px-0 flex flex-col">
-            <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 md:space-x-2">
+            <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2">
               <TextInput
-                sname="Livestream Title"
+                sname="Livestream Title *"
                 label=""
                 placeholder="Enter Livestream Title"
                 type="text"
                 value={title}
                 setValue={setTitle}
               />
-              <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 md:space-x-2">
+              <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2">
                 <TextInput
                   sname="Minutes"
                   label=""
@@ -408,7 +485,20 @@ export default function Livestream() {
                 />
               </div>
             </div>
-            <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 md:space-x-2">
+            <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2">
+              <Select
+                defaultValue={""}
+                defaultLabel="Select Livestream Category"
+                value={categoryId ?? ""}
+                setValue={(value: string) => setCategoryId(Number(value))}
+                label="Select Livestream Category"
+                options={categories.map((category) => {
+                  return {
+                    label: category.name,
+                    value: category.id ? category.id.toString() : "",
+                  };
+                })}
+              />
               <DateInput
                 sname="Release Date"
                 label=""
@@ -416,6 +506,8 @@ export default function Livestream() {
                 value={releaseDate}
                 setValue={setReleaseDate}
               />
+            </div>
+            <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2">
               <TextInput
                 sname="Short Description"
                 label=""
@@ -428,55 +520,82 @@ export default function Livestream() {
             <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 md:space-x-2">
               <TextAreaInput
                 id="Lyrics"
-                sname="Lyrics"
+                sname="Lyrics *"
                 placeholder="Enter Lyrics here"
                 value={lyrics}
                 setValue={setLyrics}
               />
               <TextAreaInput
                 id="Description"
-                sname="Description"
+                sname="Description *"
                 placeholder="Enter Description"
                 value={description}
                 setValue={setDescription}
               />
             </div>
-            <div className="w-full flex flex-col xl:flex-row justify-start items-center space-x-0 xl:space-x-2 space-y-2 xl:space-y-0">
-              <div className="w-full xl:w-1/3">
+            <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2 space-y-2 lg:space-y-0 mt-2 lg:mt-0">
+              <div className="w-full lg:w-1/2">
                 <ButtonUpload
-                  sname="Livestream Cover Image"
-                  label=""
-                  setValue={setImageFile}
-                  placeholder="Enter Livestream Release Date"
-                  accept_file="image/*"
+                  id="upload_high_quality_preview_video"
+                  label="Upload High Quality Preview Video *"
+                  file={previewVideoFile}
+                  setFile={setPreviewVideoFile}
+                  fileType={FILE_TYPE.VIDEO}
+                  uploaded={previewVideoFileUploaded}
                 />
               </div>
-              <div className="w-full xl:w-1/3">
+              <div className="w-full lg:w-1/2">
                 <ButtonUpload
-                  sname="Livestream Preview Video"
-                  label=""
-                  setValue={setPreviewVideoFile}
-                  placeholder="Enter Livestream Release Date"
-                  accept_file="video/*"
-                />
-              </div>
-              <div className="w-full xl:w-1/3">
-                <ButtonUpload
-                  sname="Livestream Full Video"
-                  label=""
-                  setValue={setFullVideoFile}
-                  placeholder="Enter Livestream Release Date"
-                  accept_file="video/*"
+                  id="upload_low_quality_preview_video"
+                  label="Upload Low Quality Preview Video"
+                  file={previewVideoFileCompressed}
+                  setFile={setPreviewVideoFileCompressed}
+                  fileType={FILE_TYPE.VIDEO}
+                  uploaded={previewVideoFileCompressedUploaded}
                 />
               </div>
             </div>
-            <div className="relative w-full flex justify-center items-center mt-5">
-              <Switch
-                checked={isExclusive}
-                setChecked={setIsExclusive}
-                label="Exclusive"
-                labelPos="right"
-              />
+            <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2 space-y-2 lg:space-y-0 mt-2 lg:mt-0">
+              <div className="w-full lg:w-1/2">
+                <ButtonUpload
+                  id="upload_high_quality_full_video"
+                  label="Upload High Quality Full Video"
+                  file={fulllVideoFile}
+                  setFile={setFullVideoFile}
+                  fileType={FILE_TYPE.VIDEO}
+                  uploaded={fulllVideoFileUploaded}
+                />
+              </div>
+              <div className="w-full lg:w-1/2">
+                <ButtonUpload
+                  id="upload_low_quality_full_video"
+                  label="Upload Low Quality Full Video"
+                  file={fulllVideoFileCompressed}
+                  setFile={setFullVideoFileCompressed}
+                  fileType={FILE_TYPE.VIDEO}
+                  uploaded={fulllVideoFileCompressedUploaded}
+                />
+              </div>
+            </div>
+            <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2 space-y-2 lg:space-y-0 mt-2 lg:mt-0">
+              <div className="w-full lg:w-1/2">
+                <ButtonUpload
+                  id="upload_livestream_cover_image"
+                  label="Upload Livestream Cover Image"
+                  file={imageFile}
+                  setFile={setImageFile}
+                  fileType={FILE_TYPE.IMAGE}
+                  uploaded={imageFileUploaded}
+                />
+              </div>
+              <div className="relative  lg:w-1/2 flex justify-center items-center mt-0 lg:mt-8">
+                <Switch
+                  checked={isExclusive}
+                  setChecked={setIsExclusive}
+                  label="Exclusive"
+                  labelPos="right"
+                />
+              </div>
             </div>
 
             <div className="flex space-x-2 mt-5">
@@ -503,8 +622,23 @@ export default function Livestream() {
       </div>
 
       {isLoading && (
-        <div className="loading">
-          <RadialProgress width={50} height={50} />
+        <div className="loading w-[50px] h-[50px]">
+          {loadingProgress > 0 ? (
+            <div className="w-20 h-20">
+              <CircularProgressbar
+                styles={buildStyles({
+                  pathColor: "#0052e4",
+                  textColor: "#ffffff",
+                  trailColor: "#888888",
+                })}
+                value={loadingProgress}
+                maxValue={100}
+                text={`${loadingProgress}%`}
+              />
+            </div>
+          ) : (
+            <RadialProgress width={50} height={50} />
+          )}
         </div>
       )}
     </Layout>

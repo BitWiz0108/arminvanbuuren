@@ -6,7 +6,8 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import ArrowDown from "@/components/Icons/ArrowDown";
 import ArrowUp from "@/components/Icons/ArrowUp";
-import Setting from "@/components/Icons/Setting";
+import ShieldLock from "@/components/Icons/ShieldLock";
+import ChangePasswordModal from "@/components/ChangePasswordModal";
 import Logout from "@/components/Icons/Logout";
 
 import { useAuthValues } from "@/contexts/contextAuth";
@@ -26,6 +27,8 @@ const Topbar = ({ visible, setVisible }: Props) => {
   const { isSignedIn, user, signOut } = useAuthValues();
 
   const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
+  const [isChangePasswordModalVisible, setIsChangePasswordModalVisible] =
+    useState<boolean>(false);
 
   useOutsideClick(menuRef, () => {
     setIsMenuVisible(false);
@@ -53,8 +56,8 @@ const Topbar = ({ visible, setVisible }: Props) => {
         className={twMerge(
           "p-2 flex justify-center items-center space-x-2 bg-third cursor-pointer",
           isMenuVisible
-            ? "rounded-t-md border-t border-l border-r border-background"
-            : "border border-background rounded-md"
+            ? "rounded-t-md border-t border-l border-r border-gray-700"
+            : "border border-gray-700 rounded-md"
         )}
         onClick={() => setIsMenuVisible(!isMenuVisible)}
       >
@@ -82,19 +85,16 @@ const Topbar = ({ visible, setVisible }: Props) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="absolute top-full left-0 w-full flex flex-col md:flex-row justify-start items-center bg-third rounded-b-md border-b border-l border-r border-background overflow-hidden"
+            className="absolute top-full left-0 w-full flex flex-col md:flex-row justify-start items-center bg-third rounded-b-md border-b border-l border-r border-gray-700 overflow-hidden"
           >
             <div
               className="w-full p-2 flex justify-center md:justify-start items-center space-x-0 md:space-x-2 text-primary text-sm hover:bg-blueSecondary transition-all duration-300 cursor-pointer select-none"
-              onClick={() => {
-                router.push("/");
-                setIsMenuVisible(false);
-              }}
+              onClick={() => setIsChangePasswordModalVisible(true)}
             >
               <div className="hidden md:flex">
-                <Setting />
+                <ShieldLock width={16} height={16} />
               </div>
-              <span>Setting</span>
+              <span>Password</span>
             </div>
             <div
               className="w-full p-2 flex justify-center md:justify-start items-center space-x-0 md:space-x-2 text-primary text-sm hover:bg-blueSecondary transition-all duration-300 cursor-pointer select-none"
@@ -112,6 +112,13 @@ const Topbar = ({ visible, setVisible }: Props) => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {isChangePasswordModalVisible && (
+        <ChangePasswordModal
+          visible={isChangePasswordModalVisible}
+          setVisible={setIsChangePasswordModalVisible}
+        />
+      )}
     </div>
   ) : null;
 };

@@ -3,15 +3,22 @@ import Image from "next/image";
 import { twMerge } from "tailwind-merge";
 import { AnimatePresence, motion } from "framer-motion";
 
+import Delete from "@/components/Icons/Delete";
+import Edit from "@/components/Icons/Edit";
+
 import { useSizeValues } from "@/contexts/contextSize";
 
-import { IMAGE_MD_BLUR_DATA_URL } from "@/libs/constants";
-import Delete from "../Icons/Delete";
-import Edit from "../Icons/Edit";
+import {
+  DEFAULT_BANNER_IMAGE,
+  FILE_TYPE,
+  IMAGE_MD_BLUR_DATA_URL,
+} from "@/libs/constants";
+
+import { IImage } from "@/interfaces/IGallery";
 
 type Props = {
   index: number;
-  image: { image: string; compressedImage: string };
+  image: IImage;
   onDelete: Function;
   onEdit: Function;
 };
@@ -37,18 +44,33 @@ const GalleryItem = ({ index, image, onDelete, onEdit }: Props) => {
       onMouseEnter={() => onHover()}
       onMouseLeave={() => onOut()}
     >
-      <Image
-        className={twMerge(
-          "w-full h-[280px] max-h-[280px] object-cover transition-all duration-300",
-          hovered ? "scale-110" : "scale-100"
-        )}
-        src={image.compressedImage}
-        width={500}
-        height={500}
-        alt=""
-        placeholder="blur"
-        blurDataURL={IMAGE_MD_BLUR_DATA_URL}
-      />
+      {image.type == FILE_TYPE.IMAGE ? (
+        <Image
+          className={twMerge(
+            "w-full h-[280px] max-h-[280px] object-cover transition-all duration-300",
+            hovered ? "scale-110" : "scale-100"
+          )}
+          src={image.imageCompressed ?? DEFAULT_BANNER_IMAGE}
+          width={500}
+          height={500}
+          alt=""
+          placeholder="blur"
+          blurDataURL={IMAGE_MD_BLUR_DATA_URL}
+          priority
+        />
+      ) : (
+        <video
+          loop
+          muted
+          autoPlay
+          playsInline
+          className={twMerge(
+            "w-full h-[280px] max-h-[280px] object-cover transition-all duration-300",
+            hovered ? "scale-110" : "scale-100"
+          )}
+          src={image.videoCompressed}
+        />
+      )}
 
       <AnimatePresence>
         {(hovered || isMobile) && (

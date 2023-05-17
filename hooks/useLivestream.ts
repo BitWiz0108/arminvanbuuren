@@ -3,26 +3,28 @@ import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import {
-  API_BASE_URL,
-  API_VERSION,
-  DEFAULT_AVATAR_IMAGE,
-  DEFAULT_COVER_IMAGE,
-} from "@/libs/constants";
-import { getAWSSignedURL } from "@/libs/aws";
+import { API_BASE_URL, API_VERSION } from "@/libs/constants";
 
-import { IStream } from "@/interfaces/IStream";
+import { IStream, IStreamQueryParam } from "@/interfaces/IStream";
 import { IComment } from "@/interfaces/IComment";
+import { getAWSSignedURL } from "@/libs/aws";
 
 const useLivestream = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { accessToken, user } = useAuthValues();
+  const [loadingProgress, setLoadingProgress] = useState<number>(0);
 
-  const fetchLivestream = async (page: number, limit: number = 10) => {
+  const fetchLivestream = async (queryParam: IStreamQueryParam) => {
     setIsLoading(true);
 
+    const params = Object.entries(queryParam)
+      .map((param) => {
+        return `${param[0]}=${param[1]}`;
+      })
+      .join("&");
+
     const response = await fetch(
-      `${API_BASE_URL}/${API_VERSION}/admin/live-stream?page=${page}&limit=${limit}`,
+      `${API_BASE_URL}/${API_VERSION}/admin/live-stream?${params}`,
       {
         method: "GET",
         headers: {
@@ -36,13 +38,30 @@ const useLivestream = () => {
       setIsLoading(false);
       const data = await response.json();
       const livestreams = data.livestreams as Array<IStream>;
-      const coverImagePromises = livestreams.map((livestream) => {
-        return getAWSSignedURL(livestream.coverImage, DEFAULT_COVER_IMAGE);
+      const fullVideoPromises = livestreams.map((livestream) => {
+        return getAWSSignedURL(livestream.fullVideo);
       });
-      const coverImages = await Promise.all(coverImagePromises);
-      livestreams.forEach(
-        (livestream, index) => (livestream.coverImage = coverImages[index])
-      );
+      const fullVideoCompressedPromises = livestreams.map((livesstream) => {
+        return getAWSSignedURL(livesstream.fullVideoCompressed);
+      });
+      const previewVideoPromises = livestreams.map((livesstream) => {
+        return getAWSSignedURL(livesstream.fullVideoCompressed);
+      });
+      const previewVideoCompressedPromises = livestreams.map((livesstream) => {
+        return getAWSSignedURL(livesstream.fullVideoCompressed);
+      });
+      const result = await Promise.all([
+        Promise.all(fullVideoPromises),
+        Promise.all(fullVideoCompressedPromises),
+        Promise.all(previewVideoPromises),
+        Promise.all(previewVideoCompressedPromises),
+      ]);
+      livestreams.forEach((livestream, index) => {
+        livestream.fullVideo = result[0][index];
+        livestream.fullVideoCompressed = result[1][index];
+        livestream.previewVideo = result[2][index];
+        livestream.previewVideoCompressed = result[3][index];
+      });
 
       return {
         pages: data.pages as number,
@@ -57,142 +76,174 @@ const useLivestream = () => {
   const createLivestream = async (
     coverImage: File,
     previewVideo: File,
+    previewVideoCompressed: File,
     fullVideo: File,
+    fullVideoCompressed: File,
     title: string,
+    categoryId: number | null,
     releaseDate: string,
     description: string,
     duration: number,
     shortDescription: string,
     lyrics: string,
     isExclusive: boolean
-  ) => {
-    setIsLoading(true);
+  ): Promise<IStream | null> => {
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
 
-    const formData = new FormData();
-    formData.append("files", coverImage);
-    formData.append("files", previewVideo);
-    formData.append("files", fullVideo);
-    formData.append("title", title.toString());
-    if (user.id) {
-      formData.append("singerId", user.id.toString());
-      formData.append("creatorId", user.id.toString());
-    } else {
-      formData.append("singerId", "");
-      formData.append("creatorId", "");
-    }
-    formData.append("releaseDate", releaseDate.toString());
-    formData.append("lyrics", lyrics.toString());
-    formData.append("description", description.toString());
-    formData.append("duration", duration.toString());
-    formData.append("shortDescription", shortDescription.toString());
-    formData.append("isExclusive", isExclusive.toString());
-    formData.append("copyright", "");
-
-    const response = await fetch(
-      `${API_BASE_URL}/${API_VERSION}/admin/live-stream`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: formData,
-      }
-    );
-
-    if (response.ok) {
-      setIsLoading(false);
-      const data = await response.json();
-      const livestream = data as IStream;
-      livestream.coverImage = await getAWSSignedURL(
-        livestream.coverImage,
-        DEFAULT_COVER_IMAGE
-      );
-
-      return livestream;
-    } else {
-      if (response.status == 500) {
-        toast.error("Error occured on creating livestream.");
+      const formData = new FormData();
+      formData.append("files", coverImage);
+      formData.append("files", previewVideo);
+      formData.append("files", previewVideoCompressed);
+      formData.append("files", fullVideo);
+      formData.append("files", fullVideoCompressed);
+      formData.append("title", title.toString());
+      if (categoryId) {
+        formData.append("categoryId", categoryId.toString());
       } else {
-        const data = await response.json();
-        toast.error(data.message);
+        formData.append("categoryId", "");
       }
-    }
+      if (user.id) {
+        formData.append("singerId", user.id.toString());
+        formData.append("creatorId", user.id.toString());
+      } else {
+        formData.append("singerId", "");
+        formData.append("creatorId", "");
+      }
+      formData.append("releaseDate", releaseDate.toString());
+      formData.append("lyrics", lyrics.toString());
+      formData.append("description", description.toString());
+      formData.append("duration", duration.toString());
+      formData.append("shortDescription", shortDescription.toString());
+      formData.append("isExclusive", isExclusive.toString());
+      formData.append("copyright", "");
 
-    setIsLoading(false);
-    return null;
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${API_BASE_URL}/${API_VERSION}/admin/live-stream`);
+      xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          setLoadingProgress(percentCompleted);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 202) {
+          setIsLoading(false);
+          const data = JSON.parse(xhr.response);
+          const livestream = data as IStream;
+          resolve(livestream);
+        } else {
+          if (xhr.status === 500) {
+            toast.error("Error occurred while creating livestream.");
+            setIsLoading(false);
+          } else {
+            const data = JSON.parse(xhr.responseText);
+            toast.error(data.message);
+            setIsLoading(false);
+          }
+          reject(xhr.statusText);
+        }
+      };
+      xhr.onloadend = () => {
+        setLoadingProgress(0);
+      };
+      xhr.send(formData);
+    });
   };
 
   const updateLivestream = async (
     id: number | null,
     coverImage: File | null,
     previewVideo: File | null,
+    previewVideoCompressed: File | null,
     fullVideo: File | null,
+    fullVideoCompressed: File | null,
     title: string,
+    categoryId: number | null,
     releaseDate: string,
     description: string,
     duration: number,
     shortDescription: string,
     lyrics: string,
     isExclusive: boolean
-  ) => {
-    setIsLoading(true);
+  ): Promise<IStream | null> => {
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
 
-    const nullFile = new File([""], "garbage.bin");
+      const nullFile = new File([""], "garbage.bin");
 
-    const formData = new FormData();
-    if (id) formData.append("id", id.toString());
-    else formData.append("id", "");
-    formData.append("files", coverImage ?? nullFile);
-    formData.append("files", previewVideo ?? nullFile);
-    formData.append("files", fullVideo ?? nullFile);
-    formData.append("title", title.toString());
-    if (user.id) {
-      formData.append("singerId", user.id.toString());
-      formData.append("creatorId", user.id.toString());
-    } else {
-      formData.append("singerId", "");
-      formData.append("creatorId", "");
-    }
-    formData.append("releaseDate", releaseDate.toString());
-    formData.append("lyrics", lyrics.toString());
-    formData.append("description", description.toString());
-    formData.append("duration", duration.toString());
-    formData.append("shortDescription", shortDescription.toString());
-    formData.append("isExclusive", isExclusive.toString());
-    formData.append("copyright", "");
-
-    const response = await fetch(
-      `${API_BASE_URL}/${API_VERSION}/admin/live-stream`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: formData,
-      }
-    );
-
-    if (response.ok) {
-      setIsLoading(false);
-      const data = await response.json();
-      const livestream = data as IStream;
-      livestream.coverImage = await getAWSSignedURL(
-        livestream.coverImage,
-        DEFAULT_COVER_IMAGE
-      );
-
-      return livestream;
-    } else {
-      if (response.status == 500) {
-        toast.error("Error occured on updating livestream.");
+      const formData = new FormData();
+      if (id) formData.append("id", id.toString());
+      else formData.append("id", "");
+      formData.append("files", coverImage ?? nullFile);
+      formData.append("files", previewVideo ?? nullFile);
+      formData.append("files", previewVideoCompressed ?? nullFile);
+      formData.append("files", fullVideo ?? nullFile);
+      formData.append("files", fullVideoCompressed ?? nullFile);
+      formData.append("title", title.toString());
+      if (categoryId == null) {
+        formData.append("categoryId", "");
       } else {
-        const data = await response.json();
-        toast.error(data.message);
+        formData.append("categoryId", categoryId.toString());
       }
-    }
+      if (user.id) {
+        formData.append("singerId", user.id.toString());
+        formData.append("creatorId", user.id.toString());
+      } else {
+        formData.append("singerId", "");
+        formData.append("creatorId", "");
+      }
+      formData.append("releaseDate", releaseDate.toString());
+      formData.append("lyrics", lyrics.toString());
+      formData.append("description", description.toString());
+      formData.append("duration", duration.toString());
+      formData.append("shortDescription", shortDescription.toString());
+      formData.append("isExclusive", isExclusive.toString());
+      formData.append("copyright", "");
 
-    setIsLoading(false);
-    return null;
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/live-stream`);
+      xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          setLoadingProgress(percentCompleted);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 202) {
+          setIsLoading(false);
+          const data = JSON.parse(xhr.response);
+          const livestream = data as IStream;
+          resolve(livestream);
+        } else {
+          if (xhr.status === 500) {
+            toast.error("Error occurred while creating livestream.");
+            setIsLoading(false);
+          } else {
+            const data = JSON.parse(xhr.responseText);
+            toast.error(data.message);
+            setIsLoading(false);
+          }
+          reject(xhr.statusText);
+        }
+      };
+      xhr.onloadend = () => {
+        setLoadingProgress(0);
+      };
+      xhr.send(formData);
+    });
   };
 
   const deleteLivestream = async (id: number | null) => {
@@ -243,16 +294,6 @@ const useLivestream = () => {
     if (response.ok) {
       const data = await response.json();
       const comments = data.comments as Array<IComment>;
-      const avatarImagePromises = comments.map((comment) => {
-        return getAWSSignedURL(
-          comment.author.avatarImage,
-          DEFAULT_AVATAR_IMAGE
-        );
-      });
-      const avatarImages = await Promise.all(avatarImagePromises);
-      comments.forEach((comment, index) => {
-        comment.author.avatarImage = avatarImages[index];
-      });
       const pages = Number(data.pages);
 
       setIsLoading(false);
@@ -280,10 +321,6 @@ const useLivestream = () => {
     if (response.ok) {
       const data = await response.json();
       const comment = data as IComment;
-      comment.author.avatarImage = await getAWSSignedURL(
-        comment.author.avatarImage,
-        DEFAULT_AVATAR_IMAGE
-      );
 
       setIsLoading(false);
       return comment;
@@ -318,6 +355,7 @@ const useLivestream = () => {
 
   return {
     isLoading,
+    loadingProgress,
     fetchLivestream,
     createLivestream,
     updateLivestream,

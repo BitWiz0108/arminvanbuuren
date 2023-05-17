@@ -3,28 +3,29 @@ import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import { getAWSSignedURL } from "@/libs/aws";
-import {
-  API_BASE_URL,
-  API_VERSION,
-  DEFAULT_AVATAR_IMAGE,
-  GENDER,
-} from "@/libs/constants";
+import { API_BASE_URL, API_VERSION, GENDER } from "@/libs/constants";
 
-import { IUser } from "@/interfaces/IUser";
+import { IUser, IUserQueryParam } from "@/interfaces/IUser";
 import { DEFAULT_COUNTRY, ICountry } from "@/interfaces/ICountry";
 import { DEFAULT_STATE, IState } from "@/interfaces/IState";
 import { ICity } from "@/interfaces/ICity";
+import { IArtist } from "@/interfaces/IArtist";
+import { IHomepage } from "@/interfaces/IHomepage";
 
 const useUser = () => {
   const { accessToken } = useAuthValues();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const fetchUsers = async (page: number, limit: number = 30) => {
+  const fetchUsers = async (queryParam: IUserQueryParam) => {
     setIsLoading(true);
+    const params = Object.entries(queryParam)
+      .map((param) => {
+        return `${param[0]}=${param[1]}`;
+      })
+      .join("&");
 
     const response = await fetch(
-      `${API_BASE_URL}/${API_VERSION}/admin/users?page=${page}&limit=${limit}`,
+      `${API_BASE_URL}/${API_VERSION}/admin/users?${params}`,
       {
         method: "GET",
         headers: {
@@ -40,17 +41,74 @@ const useUser = () => {
       const users = data.users as Array<IUser>;
       const pages = Number(data.pages);
 
-      const promises = users.map((user) => {
-        return getAWSSignedURL(user.avatarImage, DEFAULT_AVATAR_IMAGE);
-      });
-      const images = await Promise.all(promises);
-      users.forEach((user, index) => (user.avatarImage = images[index]));
-
       return { users, pages };
     }
 
     setIsLoading(false);
     return { users: [], pages: 0 };
+  };
+
+  const addUser = async (
+    username: string,
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string,
+    avatarImageFile: File | null,
+    gender: GENDER,
+    dob: string,
+    status: boolean,
+    address: string,
+    country: string,
+    state: string,
+    city: string,
+    zipcode: string
+  ) => {
+    setIsLoading(true);
+
+    const formData = new FormData();
+    formData.append("username", username.toString());
+    formData.append("firstName", firstName.toString());
+    formData.append("lastName", lastName.toString());
+    formData.append("email", email.toString());
+    formData.append("password", password.toString());
+    if (avatarImageFile) {
+      formData.append("avatarImageFile", avatarImageFile);
+    }
+    formData.append("gender", gender.toString());
+    formData.append("dob", dob.toString());
+    formData.append("status", status.toString());
+    formData.append("address", address.toString());
+    formData.append("country", country);
+    formData.append("state", state);
+    formData.append("city", city);
+    formData.append("zipcode", zipcode.toString());
+
+    const response = await fetch(`${API_BASE_URL}/${API_VERSION}/admin/users`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: formData,
+    });
+
+    if (response.ok) {
+      setIsLoading(false);
+      const data = await response.json();
+      const user = data as IUser;
+
+      return user;
+    } else {
+      if (response.status == 500) {
+        toast.error("Error occured on updating user.");
+      } else {
+        const data = await response.json();
+        toast.error(data.message);
+      }
+    }
+
+    setIsLoading(false);
+    return null;
   };
 
   const updateUser = async (
@@ -102,10 +160,6 @@ const useUser = () => {
       setIsLoading(false);
       const data = await response.json();
       const user = data as IUser;
-      user.avatarImage = await getAWSSignedURL(
-        user.avatarImage,
-        DEFAULT_AVATAR_IMAGE
-      );
 
       return user;
     } else {
@@ -258,9 +312,61 @@ const useUser = () => {
     return null;
   };
 
+  const fetchArtistData = async () => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `${API_BASE_URL}/${API_VERSION}/fanclub/artist`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      const artist = data as IArtist;
+      setIsLoading(false);
+      return artist;
+    } else {
+      setIsLoading(false);
+    }
+    return null;
+  };
+
+  const fetchAdminBackground = async () => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `${API_BASE_URL}/${API_VERSION}/admin/login-background`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (response.ok) {
+      const data = (await response.json()) as IHomepage;
+      setIsLoading(false);
+      return data;
+    } else {
+      setIsLoading(false);
+    }
+    return null;
+  };
+
   return {
     isLoading,
+    fetchArtistData,
     fetchUsers,
+    fetchAdminBackground,
+    addUser,
     updateUser,
     deleteUser,
     fetchCountries,

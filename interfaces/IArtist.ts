@@ -1,4 +1,8 @@
-import { DEFAULT_AVATAR_IMAGE, DEFAULT_BANNER_IMAGE } from "@/libs/constants";
+import {
+  DEFAULT_AVATAR_IMAGE,
+  DEFAULT_BANNER_IMAGE,
+  FILE_TYPE,
+} from "@/libs/constants";
 
 export interface IArtist {
   id: number | null;
@@ -12,7 +16,11 @@ export interface IArtist {
   description: string;
   address: string;
   mobile: string;
+  bannerType: FILE_TYPE;
   bannerImage: string;
+  bannerImageCompressed: string;
+  bannerVideo: string;
+  bannerVideoCompressed: string;
   avatarImage: string;
   facebook: string;
   twitter: string;
@@ -34,7 +42,11 @@ export const DEFAULT_ARTIST = {
   description: "",
   address: "",
   mobile: "",
-  bannerImage: DEFAULT_BANNER_IMAGE,
+  bannerType: FILE_TYPE.IMAGE,
+  bannerImage: "",
+  bannerImageCompressed: "",
+  bannerVideo: "",
+  bannerVideoCompressed: "",
   avatarImage: DEFAULT_AVATAR_IMAGE,
   facebook: "",
   twitter: "",

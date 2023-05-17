@@ -49,3 +49,21 @@ export const DEFAULT_USER = {
   zipcode: "",
   createdAt: "",
 } as IUser;
+
+export interface IUserQueryParam {
+  page: number;
+  limit: number;
+  status: "ASC" | "DESC" | "";
+  fullName: "ASC" | "DESC" | "";
+  email: "ASC" | "DESC" | "";
+  createdAt: "ASC" | "DESC" | "";
+}
+
+export const DEFAULT_USERQUERYPARAM = {
+  page: 1,
+  limit: 10,
+  status: "",
+  fullName: "",
+  email: "",
+  createdAt: "",
+} as IUserQueryParam;

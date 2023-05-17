@@ -44,3 +44,21 @@ export const DEFAULT_MUSIC = {
   releaseDate: "",
   createdAt: "",
 } as IMusic;
+
+export interface IMusicQueryParam {
+  page: number;
+  limit: number;
+  title: "ASC" | "DESC" | "";
+  albumName: "ASC" | "DESC" | "";
+  releaseDate: "ASC" | "DESC" | "";
+  artistName: "ASC" | "DESC" | "";
+}
+
+export const DEFAULT_MUSICQUERYPARAM = {
+  page: 1,
+  limit: 10,
+  title: "",
+  albumName: "",
+  releaseDate: "",
+  artistName: "",
+} as IMusicQueryParam;

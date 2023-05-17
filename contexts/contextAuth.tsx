@@ -29,6 +29,15 @@ export const AuthContext = createContext({
   resetPassword: async (email: string) => {
     return false;
   },
+  forgotPassword: async (email: string) => {
+    return false;
+  },
+  verifyEmail: async (token: string) => {
+    return false;
+  },
+  resendVerificationLink: async (email: string) => {
+    return false;
+  },
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -41,7 +50,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signIn,
     signOut,
     signUp,
+    forgotPassword,
     resetPassword,
+    verifyEmail,
+    resendVerificationLink,
   } = useAuth();
 
   return (
@@ -55,7 +67,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signIn,
         signOut,
         signUp,
+        forgotPassword,
         resetPassword,
+        verifyEmail,
+        resendVerificationLink,
       }}
     >
       {children}

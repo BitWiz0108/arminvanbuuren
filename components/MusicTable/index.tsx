@@ -11,15 +11,15 @@ import {
   IMAGE_MD_BLUR_DATA_URL,
 } from "@/libs/constants";
 
-import { IMusic } from "@/interfaces/IMusic";
+import { IMusic, IMusicQueryParam } from "@/interfaces/IMusic";
 
 type Props = {
   musics: Array<IMusic>;
   updateMusic: Function;
   deleteMusic: Function;
   totalCount: number;
-  page: number;
-  setPage: Function;
+  queryParam: IMusicQueryParam;
+  changeQueryParam: (key: string, value: string | number) => void;
 };
 
 const MusicTable = ({
@@ -27,17 +27,100 @@ const MusicTable = ({
   updateMusic,
   deleteMusic,
   totalCount,
-  page,
-  setPage,
+  queryParam,
+  changeQueryParam,
 }: Props) => {
+  const clearQueryParam = (key: string) => {
+    changeQueryParam(key, "");
+  };
+
+  const toggleQueryParam = (key: string, value: string) => {
+    switch (value) {
+      case "":
+        changeQueryParam(key, "ASC");
+        break;
+      case "ASC":
+        changeQueryParam(key, "DESC");
+        break;
+      case "DESC":
+        changeQueryParam(key, "ASC");
+        break;
+      default:
+        changeQueryParam(key, "ASC");
+    }
+  };
+
+  const arrowCode = (key: string, value: string) => {
+    switch (value) {
+      case "":
+        return <></>;
+      case "ASC":
+        return (
+          <>
+            &uarr;&nbsp;
+            <span
+              className="cursor-pointer"
+              onClick={() => clearQueryParam(key)}
+            >
+              &times;
+            </span>
+          </>
+        );
+      case "DESC":
+        return (
+          <>
+            &darr;&nbsp;
+            <span
+              className="cursor-pointer"
+              onClick={() => clearQueryParam(key)}
+            >
+              &times;
+            </span>
+          </>
+        );
+      default:
+        return <></>;
+    }
+  };
+
   return (
     <div className="w-full">
       <div className="w-full mt-2 py-3 px-5 flex flex-row justify-start items-center">
         <div className="w-[15%] min-w-[100px]">Image</div>
-        <div className="w-[50%] lg:w-[30%]">Title</div>
-        <div className="w-[15%] hidden lg:flex">Album</div>
-        <div className="w-[15%] hidden lg:flex">Artist</div>
-        <div className="w-[20%] hidden lg:flex">Release Date</div>
+        <div className="w-[50%] lg:w-[30%] hover:cursor-pointer">
+          <span onClick={() => toggleQueryParam("title", queryParam.title)}>
+            Title&nbsp;
+          </span>
+          {arrowCode("title", queryParam.title)}
+        </div>
+        <div className="w-[15%] hidden lg:flex hover:cursor-pointer">
+          <span
+            onClick={() => toggleQueryParam("albumName", queryParam.albumName)}
+          >
+            Album&nbsp;
+          </span>
+          {arrowCode("albumName", queryParam.albumName)}
+        </div>
+        <div className="w-[15%] hidden lg:flex hover:cursor-pointer">
+          <span
+            onClick={() =>
+              toggleQueryParam("artistName", queryParam.artistName)
+            }
+          >
+            Artist&nbsp;
+          </span>
+          {arrowCode("artistName", queryParam.artistName)}
+        </div>
+        <div className="w-[20%] hidden lg:flex hover:cursor-pointer">
+          <span
+            onClick={() =>
+              toggleQueryParam("releaseDate", queryParam.releaseDate)
+            }
+          >
+            Release Date&nbsp;
+          </span>
+          {arrowCode("releaseDate", queryParam.releaseDate)}
+        </div>
         <div className="w-[5%] min-w-[60px] text-center">Action</div>
       </div>
       {musics.map((value, index) => {
@@ -90,13 +173,13 @@ const MusicTable = ({
             label="Prev"
             bgColor="cyan"
             onClick={() => {
-              if (page > 1) {
-                setPage(page - 1);
+              if (queryParam.page > 1) {
+                changeQueryParam("page", queryParam.page - 1);
               }
             }}
           />
           <label className="px-2 py-0.5 mt-5 ">
-            {totalCount > 0 ? page : 0}
+            {totalCount > 0 ? queryParam.page : 0}
           </label>
           <label className="px-2 py-0.5 mt-5 ">/</label>
           <label className="px-2 py-0.5 mt-5 ">{totalCount}</label>
@@ -104,8 +187,8 @@ const MusicTable = ({
             label="Next"
             bgColor="cyan"
             onClick={() => {
-              if (page < totalCount) {
-                setPage(page + 1);
+              if (queryParam.page < totalCount) {
+                changeQueryParam("page", queryParam.page + 1);
               }
             }}
           />

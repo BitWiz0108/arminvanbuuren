@@ -3,20 +3,16 @@ import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import { getAWSSignedURL } from "@/libs/aws";
-import {
-  API_BASE_URL,
-  API_VERSION,
-  DEFAULT_ARTIST_IMAGE,
-  DEFAULT_BANNER_IMAGE,
-} from "@/libs/constants";
+import { API_BASE_URL, API_VERSION, FILE_TYPE } from "@/libs/constants";
 
 import { IArtist } from "@/interfaces/IArtist";
 import { IHomepage } from "@/interfaces/IHomepage";
 
 const useArtist = () => {
+  const { accessToken, user } = useAuthValues();
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { accessToken } = useAuthValues();
+  const [loadingProgress, setLoadingProgress] = useState<number>(0);
 
   const fetchArtist = async (id: number | null) => {
     setIsLoading(true);
@@ -36,14 +32,6 @@ const useArtist = () => {
       setIsLoading(false);
       const data = await response.json();
       const artist = data as IArtist;
-      artist.avatarImage = await getAWSSignedURL(
-        artist.avatarImage,
-        DEFAULT_ARTIST_IMAGE
-      );
-      artist.bannerImage = await getAWSSignedURL(
-        artist.bannerImage,
-        DEFAULT_BANNER_IMAGE
-      );
 
       return artist;
     }
@@ -64,79 +52,92 @@ const useArtist = () => {
     description: string,
     address: string,
     mobile: string,
+    bannerType: FILE_TYPE,
     bannerImageFile: File | null,
+    bannerImageFileCompressed: File | null,
+    bannerVideoFile: File | null,
+    bannerVideoFileCompressed: File | null,
     avatarImageFile: File | null,
+    logoImageFile: File | null,
     facebook: string,
     twitter: string,
     youtube: string,
     instagram: string,
-    soundcloud: string,
-    logoImageFile: File | null
-  ) => {
-    setIsLoading(true);
+    soundcloud: string
+  ): Promise<IArtist | null> => {
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
+      console.log("avatar: ", avatarImageFile);
+      console.log("logo: ", logoImageFile);
 
-    const nullFile = new File([""], "garbage.bin");
+      const nullFile = new File([""], "garbage.bin");
 
-    const formData = new FormData();
+      const formData = new FormData();
 
-    formData.append("files", bannerImageFile ?? nullFile);
-    formData.append("files", avatarImageFile ?? nullFile);
-    formData.append("files", logoImageFile ?? nullFile);
-    if (id) formData.append("id", id.toString());
-    else formData.append("id", "");
-    formData.append("username", username.toString());
-    formData.append("firstName", firstName.toString());
-    formData.append("lastName", lastName.toString());
-    formData.append("dob", dob.toString());
-    formData.append("email", email.toString());
-    formData.append("artistName", artistName.toString());
-    formData.append("website", website.toString());
-    formData.append("description", description.toString());
-    formData.append("address", address.toString());
-    formData.append("mobile", mobile.toString());
-
-    formData.append("facebook", facebook.toString());
-    formData.append("twitter", twitter.toString());
-    formData.append("youtube", youtube.toString());
-    formData.append("instagram", instagram.toString());
-    formData.append("soundcloud", soundcloud.toString());
-
-    const response = await fetch(
-      `${API_BASE_URL}/${API_VERSION}/admin/artist`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: formData,
-      }
-    );
-
-    if (response.ok) {
-      setIsLoading(false);
-      const data = await response.json();
-      const artist = data as IArtist;
-      artist.avatarImage = await getAWSSignedURL(
-        artist.avatarImage,
-        DEFAULT_ARTIST_IMAGE
-      );
-      artist.bannerImage = await getAWSSignedURL(
-        artist.bannerImage,
-        DEFAULT_BANNER_IMAGE
-      );
-
-      return artist;
-    } else {
-      if (response.status == 500) {
-        toast.error("Error occured on updating artist.");
+      formData.append("bannerType", bannerType.toString());
+      if (bannerType == FILE_TYPE.IMAGE) {
+        formData.append("files", bannerImageFile ?? nullFile);
+        formData.append("files", bannerImageFileCompressed ?? nullFile);
       } else {
-        const data = await response.json();
-        toast.error(data.message);
+        formData.append("files", bannerVideoFile ?? nullFile);
+        formData.append("files", bannerVideoFileCompressed ?? nullFile);
       }
-    }
+      formData.append("files", avatarImageFile ?? nullFile);
+      formData.append("files", logoImageFile ?? nullFile);
 
-    setIsLoading(false);
-    return null;
+      if (id) formData.append("id", id.toString());
+      else formData.append("id", "");
+      formData.append("username", username.toString());
+      formData.append("firstName", firstName.toString());
+      formData.append("lastName", lastName.toString());
+      formData.append("dob", dob.toString());
+      formData.append("email", email.toString());
+      formData.append("artistName", artistName.toString());
+      formData.append("website", website.toString());
+      formData.append("description", description.toString());
+      formData.append("address", address.toString());
+      formData.append("mobile", mobile.toString());
+      formData.append("facebook", facebook.toString());
+      formData.append("twitter", twitter.toString());
+      formData.append("youtube", youtube.toString());
+      formData.append("instagram", instagram.toString());
+      formData.append("soundcloud", soundcloud.toString());
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/artist`);
+      xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          setLoadingProgress(percentCompleted);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 202) {
+          setIsLoading(false);
+          const data = JSON.parse(xhr.response);
+          const artist = data as IArtist;
+          resolve(artist);
+        } else {
+          if (xhr.status === 500) {
+            toast.error("Error occurred while updating artist.");
+            setIsLoading(false);
+          } else {
+            const data = JSON.parse(xhr.responseText);
+            toast.error(data.message);
+            setIsLoading(false);
+          }
+          reject(xhr.statusText);
+        }
+      };
+      xhr.onloadend = () => {
+        setLoadingProgress(0);
+      };
+      xhr.send(formData);
+    });
   };
 
   const fetchHomeContent = async () => {
@@ -160,20 +161,81 @@ const useArtist = () => {
   };
 
   const updateHomeContent = async (
-    backgroundVideoFile: File | null
-  ) => {
-    setIsLoading(true);
-    const nullFile = new File([""], "garbage.bin");
+    backgroundType: FILE_TYPE,
+    backgroundVideoFile: File | null,
+    backgroundVideoFileCompressed: File | null,
+    backgroundImageFile: File | null,
+    backgroundImageFileCompressed: File | null
+  ): Promise<IHomepage | null> => {
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
+      const nullFile = new File([""], "garbage.bin");
 
-    const formData = new FormData();
-    formData.append("backgroundVideoFile", backgroundVideoFile ?? nullFile);
-    const response = await fetch(`${API_BASE_URL}/${API_VERSION}/admin/home`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: formData,
+      const formData = new FormData();
+      formData.append("type", backgroundType);
+
+      if (backgroundType == FILE_TYPE.IMAGE) {
+        formData.append("files", backgroundImageFile ?? nullFile);
+        formData.append("files", backgroundImageFileCompressed ?? nullFile);
+      } else {
+        formData.append("files", backgroundVideoFile ?? nullFile);
+        formData.append("files", backgroundVideoFileCompressed ?? nullFile);
+      }
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/home`);
+      xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          setLoadingProgress(percentCompleted);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 202) {
+          setIsLoading(false);
+          const data = JSON.parse(xhr.response);
+          const home = data as IHomepage;
+          resolve(home);
+        } else {
+          if (xhr.status === 500) {
+            toast.error("Error occurred while updating music.");
+            setIsLoading(false);
+          } else {
+            const data = JSON.parse(xhr.responseText);
+            toast.error(data.message);
+            setIsLoading(false);
+          }
+          reject(xhr.statusText);
+        }
+      };
+
+      xhr.onloadend = () => {
+        setLoadingProgress(0);
+      };
+
+      xhr.send(formData);
     });
+  };
+
+  const fetchAdminHomeContent = async () => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `${API_BASE_URL}/${API_VERSION}/admin/login-background`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
     if (response.ok) {
       setIsLoading(false);
       const data = await response.json();
@@ -183,12 +245,116 @@ const useArtist = () => {
       return null;
     }
   };
+
+  const updateAdminHomeContent = async (
+    adminBackgroundType: FILE_TYPE,
+    adminBackgroundVideoFile: File | null,
+    adminBackgroundVideoFileCompressed: File | null,
+    adminBackgroundImageFile: File | null,
+    adminBackgroundImageFileCompressed: File | null
+  ): Promise<IHomepage | null> => {
+    return new Promise((resolve, reject) => {
+      setIsLoading(true);
+      setLoadingProgress(0);
+      const nullFile = new File([""], "garbage.bin");
+
+      const formData = new FormData();
+      formData.append("type", adminBackgroundType);
+
+      if (adminBackgroundType == FILE_TYPE.IMAGE) {
+        formData.append("files", adminBackgroundImageFile ?? nullFile);
+        formData.append(
+          "files",
+          adminBackgroundImageFileCompressed ?? nullFile
+        );
+      } else {
+        formData.append("files", adminBackgroundVideoFile ?? nullFile);
+        formData.append(
+          "files",
+          adminBackgroundVideoFileCompressed ?? nullFile
+        );
+      }
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/login-background`);
+      xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round(
+            (event.loaded / event.total) * 100
+          );
+          setLoadingProgress(percentCompleted);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 201 || xhr.status === 202) {
+          setIsLoading(false);
+          const data = JSON.parse(xhr.response);
+          const music = data as IHomepage;
+          resolve(music);
+        } else {
+          if (xhr.status === 500) {
+            toast.error("Error occurred while updating music.");
+            setIsLoading(false);
+          } else {
+            const data = JSON.parse(xhr.responseText);
+            toast.error(data.message);
+            setIsLoading(false);
+          }
+          reject(xhr.statusText);
+        }
+      };
+
+      xhr.onloadend = () => {
+        setLoadingProgress(0);
+      };
+
+      xhr.send(formData);
+    });
+  };
+
+  const changePassword = async (oldPassword: string, newPassword: string) => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `${API_BASE_URL}/${API_VERSION}/auth/change-password`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ id: user.id, oldPassword, newPassword }),
+      }
+    );
+
+    if (response.ok) {
+      toast.success("Successfully updated!");
+      setIsLoading(false);
+      return true;
+    } else {
+      const data = await response.json();
+      toast.error(
+        data.message ? data.message : "Error occured on changing password."
+      );
+      setIsLoading(false);
+    }
+    return false;
+  };
+
   return {
     isLoading,
+    loadingProgress,
     fetchArtist,
     updateArtist,
     fetchHomeContent,
     updateHomeContent,
+    fetchAdminHomeContent,
+    updateAdminHomeContent,
+    changePassword,
   };
 };
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -9,8 +9,8 @@ import {
   Tooltip,
   Legend,
   ChartOptions,
-} from 'chart.js';
-import { Line, Pie } from 'react-chartjs-2';
+} from "chart.js";
+import { Line, Pie } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
@@ -25,7 +25,7 @@ ChartJS.register(
 type Props = {
   dataLabel: any;
   dataSets: any;
-}
+};
 
 const LineGraph = ({ dataLabel, dataSets }: Props) => {
   const options = {
@@ -33,27 +33,29 @@ const LineGraph = ({ dataLabel, dataSets }: Props) => {
 
     plugins: {
       legend: {
-        position: 'top' as const,
+        position: "top" as const,
       },
       title: {
         display: true,
-        text: 'Earnings per day',
+        text: "Earnings per day",
       },
     },
-    aspectRatio: 2
+    aspectRatio: 2,
   } as ChartOptions;
 
   const labels = dataLabel;
 
   const data = {
     labels: labels,
-    datasets: [{
-      label: 'Sellings',
-      data: dataSets,
-      fill: false,
-      borderColor: 'rgb(75, 192, 192)',
-      tension: 0.1
-    }]
+    datasets: [
+      {
+        label: "Sellings",
+        data: dataSets,
+        fill: false,
+        borderColor: "rgb(75, 192, 192)",
+        tension: 0.1,
+      },
+    ],
   };
 
   return (

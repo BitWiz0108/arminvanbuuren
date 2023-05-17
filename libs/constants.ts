@@ -17,7 +17,8 @@ export const DEFAULT_BANNER_IMAGE = "/images/fanclub/cover.jpg";
 export const DEFAULT_AVATAR_IMAGE = "/images/fanclub/fan.svg";
 export const DEFAULT_COVER_IMAGE = "/images/preview.jpg";
 export const DEFAULT_ARTIST_IMAGE = "/images/fanclub/profile.jpg";
-export const DEFAULT_LOGO_IMAGE = "";
+export const DEFAULT_LOGO_IMAGE = "/images/logo.png";
+export const PLACEHOLDER_IMAGE = "/images/placeholder.jpg";
 
 export const TAG_USERNAME = "EMAIL";
 export const TAG_PASSWORD = "PASSWORD";
@@ -101,6 +102,19 @@ export enum IMAGE_SIZE {
   WIDE = "WIDE",
   TALL = "TALL",
   WIDEANDTALL = "WIDEANDTALL",
+}
+
+export enum FILE_TYPE {
+  IMAGE = "IMAGE",
+  VIDEO = "VIDEO",
+}
+
+export enum OAUTH_PROVIDER {
+  FACEBOOK = "FACEBOOK",
+  TWITTER = "TWITTER",
+  INSTAGRAM = "INSTAGRAM",
+  LINKEDIN = "LINKEDIN",
+  YOUTUBE = "YOUTUBE",
 }
 
 export const IMAGE_MD_BLUR_DATA_URL =
