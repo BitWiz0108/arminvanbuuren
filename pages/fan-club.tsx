@@ -605,7 +605,7 @@ export default function FanClub() {
 
   const aboutMe = (
     <div className="relative w-full flex flex-col justify-start items-center">
-      <div className="w-full lg:w-2/3 xl:w-1/2 p-5">
+      <div className="w-full xl:w-4/5 2xl:w-2/3 p-5">
         <div className="w-full flex flex-col p-5 bg-[#2f363e] rounded-lg">
           <RadioBoxGroup
             options={profileOptions}

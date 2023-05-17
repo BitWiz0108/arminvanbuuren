@@ -70,7 +70,7 @@ const Layout = ({ children }: LayoutProps) => {
         <title>Admin</title>
         <meta name="description" content="Admin Website" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.jpg" />
+        <link rel="icon" href="/favicon.png" />
       </Head>
 
       <main className="relative w-full min-h-screen flex flex-row justify-start items-start">

@@ -407,6 +407,7 @@ export default function PageSettings() {
               />
             </div>
           )}
+          <br />
           <ButtonSettings
             bgColor="cyan"
             label="Save"
@@ -417,7 +418,7 @@ export default function PageSettings() {
     </div>
   );
 
-  const Admin_Home = (
+  const AdminHome = (
     <div className="relative w-full flex flex-col justify-start items-center p-5">
       <div className="w-full lg:w-2/3 p-5 ">
         <div className="w-full flex flex-col p-5 bg-[#2f363e] rounded-lg">
@@ -466,6 +467,7 @@ export default function PageSettings() {
               />
             </div>
           )}
+          <br />
           <ButtonSettings
             bgColor="cyan"
             label="Save"
@@ -489,7 +491,6 @@ export default function PageSettings() {
               setValue={setTermsContent}
             />
           </div>
-          <br />
           <ButtonSettings
             bgColor="cyan"
             label="Save"
@@ -520,6 +521,7 @@ export default function PageSettings() {
             value={appSecret}
             setValue={setappSecret}
           />
+          <br />
           <ButtonSettings
             bgColor="cyan"
             label="Save"
@@ -599,7 +601,7 @@ export default function PageSettings() {
         </div>
 
         {tab == FANCLUB_TAB.FAN_HOME && Home}
-        {tab == FANCLUB_TAB.ADMIN_HOME && Admin_Home}
+        {tab == FANCLUB_TAB.ADMIN_HOME && AdminHome}
         {tab == FANCLUB_TAB.ABOUT && About}
         {tab == FANCLUB_TAB.GALLERY && Gallery}
         {tab == FANCLUB_TAB.TERMS && Terms}
