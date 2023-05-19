@@ -67,18 +67,15 @@ const useArtist = () => {
   ): Promise<IArtist | null> => {
     return new Promise((resolve, reject) => {
       setIsLoading(true);
-      console.log("avatar: ", avatarImageFile);
-      console.log("logo: ", logoImageFile);
 
       const nullFile = new File([""], "garbage.bin");
-
       const formData = new FormData();
 
       formData.append("bannerType", bannerType.toString());
       if (bannerType == FILE_TYPE.IMAGE) {
         formData.append("files", bannerImageFile ?? nullFile);
         formData.append("files", bannerImageFileCompressed ?? nullFile);
-      } else {
+      } else if (bannerType == FILE_TYPE.VIDEO) {
         formData.append("files", bannerVideoFile ?? nullFile);
         formData.append("files", bannerVideoFileCompressed ?? nullFile);
       }
@@ -87,6 +84,7 @@ const useArtist = () => {
 
       if (id) formData.append("id", id.toString());
       else formData.append("id", "");
+
       formData.append("username", username.toString());
       formData.append("firstName", firstName.toString());
       formData.append("lastName", lastName.toString());
