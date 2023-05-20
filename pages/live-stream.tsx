@@ -29,6 +29,7 @@ import {
   DEFAULT_AVATAR_IMAGE,
   FILE_TYPE,
   IMAGE_SM_BLUR_DATA_URL,
+  UPLOAD_TYPE,
 } from "@/libs/constants";
 
 import {
@@ -38,12 +39,18 @@ import {
 } from "@/interfaces/IStream";
 import { IComment } from "@/interfaces/IComment";
 import { ICategory } from "@/interfaces/ICategory";
+import RadioBoxGroup from "@/components/RadioBoxGroup";
 
 const TextAreaInput = dynamic(() => import("@/components/TextAreaInput"), {
   ssr: false,
 });
 
 export default function Livestream() {
+  const UploadType = [
+    { label: "File", value: UPLOAD_TYPE.FILE },
+    { label: "URL", value: UPLOAD_TYPE.URL },
+  ];
+
   const { isSignedIn } = useAuthValues();
   const { fetchAllCategory } = useCategory();
   const {
@@ -74,24 +81,34 @@ export default function Livestream() {
   const [shortDescription, setShortDescription] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageFileUploaded, setImageFileUploaded] = useState<string>("");
+
+  const [uploadType, setUploadType] = useState<UPLOAD_TYPE>(UPLOAD_TYPE.FILE);
   const [previewVideoFile, setPreviewVideoFile] = useState<File | null>(null);
   const [previewVideoFileUploaded, setPreviewVideoFileUploaded] =
     useState<string>("");
+  const [previewVideoFileUrl, setPreviewVideoFileUrl] = useState<string>("");
 
   const [previewVideoFileCompressed, setPreviewVideoFileCompressed] =
     useState<File | null>(null);
+  const [previewVideoFileCompressedUrl, setPreviewVideoFileCompressedUrl] =
+    useState<string>("");
   const [
     previewVideoFileCompressedUploaded,
     setPreviewVideoFileCompressedUploaded,
   ] = useState<string>("");
+
   const [fulllVideoFile, setFullVideoFile] = useState<File | null>(null);
+  const [fulllVideoFileUrl, setFullVideoFileUrl] = useState<string>("");
   const [fulllVideoFileUploaded, setFullVideoFileUploaded] =
     useState<string>("");
 
   const [fulllVideoFileCompressed, setFullVideoFileCompressed] =
     useState<File | null>(null);
+  const [fulllVideoFileCompressedUrl, setFulllVideoFileCompressedUrl] =
+    useState<string>("");
   const [fulllVideoFileCompressedUploaded, setFullVideoFileCompressedUploaded] =
     useState<string>("");
+
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [page, setPage] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -109,6 +126,10 @@ export default function Livestream() {
 
   const changeQueryParam = (key: string, value: number | string) => {
     setQueryParams({ ...queryParams, [key]: value });
+  };
+
+  const handlePostOptionChange = (value: UPLOAD_TYPE) => {
+    setUploadType(value);
   };
 
   const clearFields = () => {
@@ -132,10 +153,18 @@ export default function Livestream() {
     const duration = minutes * 60 + seconds;
     if (
       (!isEditing && !imageFile) ||
-      (!isEditing && !previewVideoFile) ||
-      (!isEditing && !previewVideoFileCompressed) ||
-      (!isEditing && !fulllVideoFile) ||
-      (!isEditing && !fulllVideoFileCompressed) ||
+      (!isEditing &&
+        ((uploadType == UPLOAD_TYPE.FILE && !previewVideoFile) ||
+          (uploadType == UPLOAD_TYPE.URL && !previewVideoFileUrl))) ||
+      (!isEditing &&
+        ((uploadType == UPLOAD_TYPE.FILE && !previewVideoFileCompressed) ||
+          (uploadType == UPLOAD_TYPE.URL && !previewVideoFileCompressedUrl))) ||
+      (!isEditing &&
+        ((uploadType == UPLOAD_TYPE.FILE && !fulllVideoFile) ||
+          (uploadType == UPLOAD_TYPE.URL && !fulllVideoFileUrl))) ||
+      (!isEditing &&
+        ((uploadType == UPLOAD_TYPE.FILE && !fulllVideoFileCompressed) ||
+          (uploadType == UPLOAD_TYPE.URL && !fulllVideoFileCompressedUrl))) ||
       !title ||
       !description
     ) {
@@ -147,10 +176,15 @@ export default function Livestream() {
       updateLivestream(
         selectedId,
         imageFile,
-        previewVideoFile,
-        previewVideoFileCompressed,
-        fulllVideoFile,
-        fulllVideoFileCompressed,
+        uploadType,
+        uploadType == UPLOAD_TYPE.FILE ? previewVideoFile : previewVideoFileUrl,
+        uploadType == UPLOAD_TYPE.FILE
+          ? previewVideoFileCompressed
+          : previewVideoFileCompressedUrl,
+        uploadType == UPLOAD_TYPE.FILE ? fulllVideoFile : fulllVideoFileUrl,
+        uploadType == UPLOAD_TYPE.FILE
+          ? fulllVideoFileCompressed
+          : fulllVideoFileCompressedUrl,
         title,
         categoryId,
         releaseDate,
@@ -170,10 +204,17 @@ export default function Livestream() {
     } else {
       createLivestream(
         imageFile!,
-        previewVideoFile!,
-        previewVideoFileCompressed!,
-        fulllVideoFile!,
-        fulllVideoFileCompressed!,
+        uploadType,
+        uploadType == UPLOAD_TYPE.FILE
+          ? previewVideoFile!
+          : previewVideoFileUrl,
+        uploadType == UPLOAD_TYPE.FILE
+          ? previewVideoFileCompressed!
+          : previewVideoFileCompressedUrl,
+        uploadType == UPLOAD_TYPE.FILE ? fulllVideoFile! : fulllVideoFileUrl,
+        uploadType == UPLOAD_TYPE.FILE
+          ? fulllVideoFileCompressed!
+          : fulllVideoFileCompressedUrl,
         title,
         categoryId == null ? null : categoryId < 0 ? null : categoryId,
         releaseDate,
@@ -533,25 +574,49 @@ export default function Livestream() {
                 setValue={setDescription}
               />
             </div>
+            <RadioBoxGroup
+              options={UploadType}
+              name="UploadType RadioBox"
+              selectedValue={uploadType}
+              onChange={(value) => handlePostOptionChange(value as UPLOAD_TYPE)}
+            />
             <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2 space-y-2 lg:space-y-0 mt-2 lg:mt-0">
               <div className="w-full lg:w-1/2">
                 <ButtonUpload
                   id="upload_high_quality_preview_video"
                   label="Upload High Quality Preview Video *"
-                  file={previewVideoFile}
-                  setFile={setPreviewVideoFile}
+                  file={
+                    uploadType == UPLOAD_TYPE.FILE
+                      ? previewVideoFile
+                      : previewVideoFileUrl
+                  }
+                  setFile={
+                    uploadType == UPLOAD_TYPE.FILE
+                      ? setPreviewVideoFile
+                      : setPreviewVideoFileUrl
+                  }
                   fileType={FILE_TYPE.VIDEO}
                   uploaded={previewVideoFileUploaded}
+                  uploadType={uploadType}
                 />
               </div>
               <div className="w-full lg:w-1/2">
                 <ButtonUpload
                   id="upload_low_quality_preview_video"
                   label="Upload Low Quality Preview Video"
-                  file={previewVideoFileCompressed}
-                  setFile={setPreviewVideoFileCompressed}
+                  file={
+                    uploadType == UPLOAD_TYPE.FILE
+                      ? previewVideoFileCompressed
+                      : previewVideoFileCompressedUrl
+                  }
+                  setFile={
+                    uploadType == UPLOAD_TYPE.FILE
+                      ? setPreviewVideoFileCompressed
+                      : setPreviewVideoFileCompressedUrl
+                  }
                   fileType={FILE_TYPE.VIDEO}
                   uploaded={previewVideoFileCompressedUploaded}
+                  uploadType={uploadType}
                 />
               </div>
             </div>
@@ -560,20 +625,38 @@ export default function Livestream() {
                 <ButtonUpload
                   id="upload_high_quality_full_video"
                   label="Upload High Quality Full Video"
-                  file={fulllVideoFile}
-                  setFile={setFullVideoFile}
+                  file={
+                    uploadType == UPLOAD_TYPE.FILE
+                      ? fulllVideoFile
+                      : fulllVideoFileUrl
+                  }
+                  setFile={
+                    uploadType == UPLOAD_TYPE.FILE
+                      ? setFullVideoFile
+                      : setFullVideoFileUrl
+                  }
                   fileType={FILE_TYPE.VIDEO}
                   uploaded={fulllVideoFileUploaded}
+                  uploadType={uploadType}
                 />
               </div>
               <div className="w-full lg:w-1/2">
                 <ButtonUpload
                   id="upload_low_quality_full_video"
                   label="Upload Low Quality Full Video"
-                  file={fulllVideoFileCompressed}
-                  setFile={setFullVideoFileCompressed}
+                  file={
+                    uploadType == UPLOAD_TYPE.FILE
+                      ? fulllVideoFileCompressed
+                      : fulllVideoFileCompressedUrl
+                  }
+                  setFile={
+                    uploadType == UPLOAD_TYPE.FILE
+                      ? setFullVideoFileCompressed
+                      : setFulllVideoFileCompressedUrl
+                  }
                   fileType={FILE_TYPE.VIDEO}
                   uploaded={fulllVideoFileCompressedUploaded}
+                  uploadType={uploadType}
                 />
               </div>
             </div>

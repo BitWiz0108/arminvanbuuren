@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import { API_BASE_URL, API_VERSION } from "@/libs/constants";
+import { API_BASE_URL, API_VERSION, UPLOAD_TYPE } from "@/libs/constants";
 
 import { IStream, IStreamQueryParam } from "@/interfaces/IStream";
 import { IComment } from "@/interfaces/IComment";
@@ -75,10 +75,11 @@ const useLivestream = () => {
 
   const createLivestream = async (
     coverImage: File,
-    previewVideo: File,
-    previewVideoCompressed: File,
-    fullVideo: File,
-    fullVideoCompressed: File,
+    uploadType: UPLOAD_TYPE,
+    previewVideo: File | string,
+    previewVideoCompressed: File | string,
+    fullVideo: File | string,
+    fullVideoCompressed: File | string,
     title: string,
     categoryId: number | null,
     releaseDate: string,
@@ -92,11 +93,24 @@ const useLivestream = () => {
       setIsLoading(true);
 
       const formData = new FormData();
+      const nullFile = new File([""], "garbage.bin");
+
       formData.append("files", coverImage);
-      formData.append("files", previewVideo);
-      formData.append("files", previewVideoCompressed);
-      formData.append("files", fullVideo);
-      formData.append("files", fullVideoCompressed);
+      if (uploadType == UPLOAD_TYPE.FILE) {
+        formData.append("files", previewVideo);
+        formData.append("files", previewVideoCompressed);
+        formData.append("files", fullVideo);
+        formData.append("files", fullVideoCompressed);
+      } else {
+        formData.append("files", nullFile);
+        formData.append("files", nullFile);
+        formData.append("files", nullFile);
+        formData.append("files", nullFile);
+        formData.append("fullVideo", fullVideo);
+        formData.append("fullVideoCompressed", fullVideoCompressed);
+        formData.append("previewVideo", previewVideo);
+        formData.append("previewVideoCompressed", previewVideoCompressed);
+      }
       formData.append("title", title.toString());
       if (categoryId) {
         formData.append("categoryId", categoryId.toString());
@@ -160,10 +174,11 @@ const useLivestream = () => {
   const updateLivestream = async (
     id: number | null,
     coverImage: File | null,
-    previewVideo: File | null,
-    previewVideoCompressed: File | null,
-    fullVideo: File | null,
-    fullVideoCompressed: File | null,
+    uploadType: UPLOAD_TYPE,
+    previewVideo: File | string | null,
+    previewVideoCompressed: File | string | null,
+    fullVideo: File | string | null,
+    fullVideoCompressed: File | string | null,
     title: string,
     categoryId: number | null,
     releaseDate: string,
@@ -182,10 +197,22 @@ const useLivestream = () => {
       if (id) formData.append("id", id.toString());
       else formData.append("id", "");
       formData.append("files", coverImage ?? nullFile);
-      formData.append("files", previewVideo ?? nullFile);
-      formData.append("files", previewVideoCompressed ?? nullFile);
-      formData.append("files", fullVideo ?? nullFile);
-      formData.append("files", fullVideoCompressed ?? nullFile);
+
+      if (uploadType == UPLOAD_TYPE.FILE) {
+        formData.append("files", previewVideo ?? nullFile);
+        formData.append("files", previewVideoCompressed ?? nullFile);
+        formData.append("files", fullVideo ?? nullFile);
+        formData.append("files", fullVideoCompressed ?? nullFile);
+      } else {
+        formData.append("files", nullFile);
+        formData.append("files", nullFile);
+        formData.append("files", nullFile);
+        formData.append("files", nullFile);
+        formData.append("fullVideo", fullVideo ?? "");
+        formData.append("fullVideoCompressed", fullVideoCompressed ?? "");
+        formData.append("previewVideo", previewVideo ?? "");
+        formData.append("previewVideoCompressed", previewVideoCompressed ?? "");
+      }
       formData.append("title", title.toString());
       if (categoryId == null) {
         formData.append("categoryId", "");
