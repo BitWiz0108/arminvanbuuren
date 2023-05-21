@@ -67,8 +67,6 @@ const useArtist = () => {
   ): Promise<IArtist | null> => {
     return new Promise((resolve, reject) => {
       setIsLoading(true);
-      console.log("avatar: ", avatarImageFile);
-      console.log("logo: ", logoImageFile);
 
       const nullFile = new File([""], "garbage.bin");
 
