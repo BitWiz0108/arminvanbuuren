@@ -76,6 +76,7 @@ export default function Livestream() {
   );
   const [lyrics, setLyrics] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+  const [hours, setHours] = useState<number>(0);
   const [minutes, setMinutes] = useState<number>(0);
   const [seconds, setSeconds] = useState<number>(0);
   const [shortDescription, setShortDescription] = useState<string>("");
@@ -147,6 +148,7 @@ export default function Livestream() {
     setReleaseDate(moment().format(DATETIME_FORMAT));
     setLyrics("");
     setDescription("");
+    setHours(0);
     setMinutes(0);
     setSeconds(0);
     setShortDescription("");
@@ -154,7 +156,7 @@ export default function Livestream() {
   };
 
   const onConfirm = () => {
-    const duration = minutes * 60 + seconds;
+    const duration = hours * 3600 + minutes * 60 + seconds;
     if (
       (!isEditing && !imageFile) ||
       (!isEditing &&
@@ -363,9 +365,14 @@ export default function Livestream() {
               );
               setLyrics(livestreams[index].lyrics);
               setDescription(livestreams[index].description);
-              const minutes = Math.floor(livestreams[index].duration / 60);
+              const hours = Math.floor(livestreams[index].duration / 3600);
+              const minutes = Math.floor(
+                (livestreams[index].duration % 3600) / 60
+              );
               const seconds = livestreams[index].duration % 60;
+              setHours(hours);
               setMinutes(minutes);
+              setSeconds(seconds);
               setShortDescription(livestreams[index].shortDescription);
               setIsExclusive(livestreams[index].isExclusive);
 
@@ -510,25 +517,34 @@ export default function Livestream() {
                 value={title}
                 setValue={setTitle}
               />
-              <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2">
-                <TextInput
-                  sname="Minutes"
-                  label=""
-                  placeholder="Enter Music Duration (s)"
-                  type="text"
-                  value={minutes}
-                  setValue={(value: string) => setMinutes(Number(value))}
-                />
-                <span className="hidden lg:inline-flex mt-5">:</span>
-                <TextInput
-                  sname="Seconds"
-                  label=""
-                  placeholder="Enter Music Duration (s)"
-                  type="text"
-                  value={seconds}
-                  setValue={(value: string) => setSeconds(Number(value))}
-                />
-              </div>
+            </div>
+            <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2">
+              <TextInput
+                sname="Hours"
+                label=""
+                placeholder="Enter Music Duration (s)"
+                type="text"
+                value={hours}
+                setValue={(value: string) => setHours(Number(value))}
+              />
+              <span className="hidden lg:inline-flex mt-5">:</span>
+              <TextInput
+                sname="Minutes"
+                label=""
+                placeholder="Enter Music Duration (s)"
+                type="text"
+                value={minutes}
+                setValue={(value: string) => setMinutes(Number(value))}
+              />
+              <span className="hidden lg:inline-flex mt-5">:</span>
+              <TextInput
+                sname="Seconds"
+                label=""
+                placeholder="Enter Music Duration (s)"
+                type="text"
+                value={seconds}
+                setValue={(value: string) => setSeconds(Number(value))}
+              />
             </div>
             <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2">
               <Select

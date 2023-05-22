@@ -3,10 +3,11 @@ import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import { API_BASE_URL, API_VERSION } from "@/libs/constants";
+import { API_BASE_URL, API_VERSION, DATE_FORMAT } from "@/libs/constants";
 
 import { IMusic, IMusicQueryParam } from "@/interfaces/IMusic";
 import { getAWSSignedURL } from "@/libs/aws";
+import moment from "moment";
 
 const useMusic = () => {
   const { accessToken, user } = useAuthValues();
@@ -105,8 +106,10 @@ const useMusic = () => {
       formData.append("copyright", copyright.toString());
       formData.append("lyrics", lyrics.toString());
       formData.append("description", description.toString());
-      formData.append("releaseDate", releaseDate.toString());
-
+      formData.append(
+        "releaseDate",
+        moment(releaseDate).format(DATE_FORMAT).toString()
+      );
       const xhr = new XMLHttpRequest();
       xhr.open("POST", `${API_BASE_URL}/${API_VERSION}/admin/music`);
 
@@ -195,8 +198,10 @@ const useMusic = () => {
       formData.append("copyright", copyright.toString());
       formData.append("lyrics", lyrics.toString());
       formData.append("description", description.toString());
-      formData.append("releaseDate", releaseDate.toString());
-
+      formData.append(
+        "releaseDate",
+        moment(releaseDate).format(DATE_FORMAT).toString()
+      );
       const xhr = new XMLHttpRequest();
       xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/music`);
       xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);

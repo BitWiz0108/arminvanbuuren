@@ -3,11 +3,17 @@ import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import { API_BASE_URL, API_VERSION, UPLOAD_TYPE } from "@/libs/constants";
+import {
+  API_BASE_URL,
+  API_VERSION,
+  DATE_FORMAT,
+  UPLOAD_TYPE,
+} from "@/libs/constants";
 
 import { IStream, IStreamQueryParam } from "@/interfaces/IStream";
 import { IComment } from "@/interfaces/IComment";
 import { getAWSSignedURL } from "@/libs/aws";
+import moment from "moment";
 
 const useLivestream = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -124,7 +130,10 @@ const useLivestream = () => {
         formData.append("singerId", "");
         formData.append("creatorId", "");
       }
-      formData.append("releaseDate", releaseDate.toString());
+      formData.append(
+        "releaseDate",
+        moment(releaseDate).format(DATE_FORMAT).toString()
+      );
       formData.append("lyrics", lyrics.toString());
       formData.append("description", description.toString());
       formData.append("duration", duration.toString());
@@ -226,7 +235,10 @@ const useLivestream = () => {
         formData.append("singerId", "");
         formData.append("creatorId", "");
       }
-      formData.append("releaseDate", releaseDate.toString());
+      formData.append(
+        "releaseDate",
+        moment(releaseDate).format(DATE_FORMAT).toString()
+      );
       formData.append("lyrics", lyrics.toString());
       formData.append("description", description.toString());
       formData.append("duration", duration.toString());

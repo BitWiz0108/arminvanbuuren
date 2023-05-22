@@ -5,6 +5,7 @@ export interface IAlbum {
   image: string;
   name: string;
   creator: any;
+  releaseDate: string;
   createdAt: string;
   description: string;
 }
@@ -14,5 +15,6 @@ export const DEFAULT_IALBUM = {
   image: DEFAULT_COVER_IMAGE,
   name: "",
   creator: null,
+  releaseDate: "",
   description: "",
 } as IAlbum;

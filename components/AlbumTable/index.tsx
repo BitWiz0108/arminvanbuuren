@@ -25,7 +25,7 @@ const AlbumTable = ({ albums, deleteAlbum, updateAlbum }: Props) => {
       <div className="w-full mt-2 py-3 px-5 flex flex-row justify-start items-center">
         <label className="w-[15%] min-w-[100px]">Image</label>
         <label className="w-[55%]">Album Name</label>
-        <label className="w-[25%] hidden lg:flex">Created At</label>
+        <label className="w-[25%] hidden lg:flex">ReleaseDate</label>
         <label className="w-[5%] min-w-[60px]">Action</label>
       </div>
       {albums.map((value, index) => {
@@ -47,7 +47,7 @@ const AlbumTable = ({ albums, deleteAlbum, updateAlbum }: Props) => {
             </div>
             <div className="w-[55%] truncate">{value.name}</div>
             <div className="w-[25%] hidden lg:flex truncate">
-              {moment(value.createdAt).format(DATETIME_FORMAT)}
+              {moment(value.releaseDate).format(DATETIME_FORMAT)}
             </div>
             <div className="w-[5%] min-w-[60px] flex justify-center items-center space-x-5">
               <Edit

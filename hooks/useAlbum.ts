@@ -3,9 +3,11 @@ import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import { API_BASE_URL, API_VERSION } from "@/libs/constants";
+import { API_BASE_URL, API_VERSION, DATETIME_FORMAT } from "@/libs/constants";
 
 import { IAlbum } from "@/interfaces/IAlbum";
+import moment from "moment";
+import { DATE_FORMAT } from "@/libs/constants";
 
 const useAlbum = () => {
   const { accessToken, user } = useAuthValues();
@@ -27,7 +29,11 @@ const useAlbum = () => {
       setIsLoading(false);
       const data = await response.json();
       const albums = data as Array<IAlbum>;
-
+      // albums.forEach((album, index) => {
+      //   albums[index].releaseDate = moment(albums[index].releaseDate).format(
+      //     DATETIME_FORMAT
+      //   );
+      // });
       return albums;
     }
 
@@ -38,12 +44,12 @@ const useAlbum = () => {
   const createAlbum = async (
     image: File,
     name: string,
-    description: string
+    description: string,
+    releaseDate: string
   ): Promise<IAlbum | null> => {
     return new Promise((resolve, reject) => {
       setIsLoading(true);
       setLoadingProgress(0);
-
       const formData = new FormData();
 
       formData.append("imageFile", image);
@@ -51,6 +57,10 @@ const useAlbum = () => {
       if (user.id) formData.append("userId", user.id.toString());
       else formData.append("userId", "");
       formData.append("description", description.toString());
+      formData.append(
+        "releaseDate",
+        moment(releaseDate).format(DATE_FORMAT).toString()
+      );
       formData.append("copyright", "");
 
       const xhr = new XMLHttpRequest();
@@ -96,7 +106,8 @@ const useAlbum = () => {
     id: number | null,
     image: File | null,
     name: string,
-    description: string
+    description: string,
+    releaseDate: string
   ): Promise<IAlbum | null> => {
     return new Promise((resolve, reject) => {
       setIsLoading(true);
@@ -111,6 +122,10 @@ const useAlbum = () => {
       if (user.id) formData.append("userId", user.id.toString());
       else formData.append("userId", "");
       formData.append("description", description.toString());
+      formData.append(
+        "releaseDate",
+        moment(releaseDate).format(DATE_FORMAT).toString()
+      );
       formData.append("copyright", "");
 
       const xhr = new XMLHttpRequest();
