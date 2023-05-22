@@ -138,6 +138,10 @@ export default function Livestream() {
     setPreviewVideoFileCompressed(null);
     setFullVideoFile(null);
     setFullVideoFileCompressed(null);
+    setPreviewVideoFileUrl("");
+    setPreviewVideoFileCompressedUrl("");
+    setFullVideoFileUrl("");
+    setFulllVideoFileCompressedUrl("");
     setTitle("");
     setCategoryId(null);
     setReleaseDate(moment().format(DATETIME_FORMAT));
