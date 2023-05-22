@@ -3,9 +3,10 @@ import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import { API_BASE_URL, API_VERSION } from "@/libs/constants";
+import { API_BASE_URL, API_VERSION, DATE_FORMAT } from "@/libs/constants";
 
 import { ICategory } from "@/interfaces/ICategory";
+import moment from "moment";
 
 const useCategory = () => {
   const { accessToken, user } = useAuthValues();
@@ -41,7 +42,8 @@ const useCategory = () => {
   const createCategory = async (
     image: File,
     name: string,
-    description: string
+    description: string,
+    releaseDate: string
   ): Promise<ICategory | null> => {
     return new Promise((resolve, reject) => {
       setIsLoading(true);
@@ -54,6 +56,10 @@ const useCategory = () => {
       if (user.id) formData.append("userId", user.id.toString());
       else formData.append("userId", "");
       formData.append("description", description.toString());
+      formData.append(
+        "releaseDate",
+        moment(releaseDate).format(DATE_FORMAT).toString()
+      );
       formData.append("copyright", "");
 
       const xhr = new XMLHttpRequest();
@@ -99,7 +105,8 @@ const useCategory = () => {
     id: number | null,
     image: File | null,
     name: string,
-    description: string
+    description: string,
+    releaseDate: string
   ): Promise<ICategory | null> => {
     return new Promise((resolve, reject) => {
       setIsLoading(true);
@@ -114,6 +121,10 @@ const useCategory = () => {
       if (user.id) formData.append("userId", user.id.toString());
       else formData.append("userId", "");
       formData.append("description", description.toString());
+      formData.append(
+        "releaseDate",
+        moment(releaseDate).format(DATE_FORMAT).toString()
+      );
       formData.append("copyright", "");
 
       const xhr = new XMLHttpRequest();

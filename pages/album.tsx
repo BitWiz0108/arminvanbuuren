@@ -10,13 +10,19 @@ import TextInput from "@/components/TextInput";
 import ButtonUpload from "@/components/ButtonUpload";
 import RadialProgress from "@/components/RadialProgress";
 
-import { FILE_TYPE, PLACEHOLDER_IMAGE } from "@/libs/constants";
+import {
+  DATETIME_FORMAT,
+  FILE_TYPE,
+  PLACEHOLDER_IMAGE,
+} from "@/libs/constants";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
 import useAlbum from "@/hooks/useAlbum";
 
 import { IAlbum } from "@/interfaces/IAlbum";
+import moment from "moment";
+import DateInput from "@/components/DateInput";
 
 export default function Album() {
   const { isSignedIn } = useAuthValues();
@@ -37,10 +43,14 @@ export default function Album() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageFileUploaded, setImageFileUploaded] = useState<string>("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [releaseDate, setReleaseDate] = useState<string>(
+    moment().format(DATETIME_FORMAT)
+  );
 
   const clearFields = () => {
     setName("");
     setDescription("");
+    setReleaseDate(moment().format(DATETIME_FORMAT));
     setImageFile(null);
   };
 
@@ -51,16 +61,18 @@ export default function Album() {
     }
 
     if (isEditing) {
-      updateAlbum(selectedId, imageFile, name, description).then((value) => {
-        if (value) {
-          clearFields();
-          fetchAlbums();
+      updateAlbum(selectedId, imageFile, name, description, releaseDate).then(
+        (value) => {
+          if (value) {
+            clearFields();
+            fetchAlbums();
 
-          toast.success("Successfully updated!");
+            toast.success("Successfully updated!");
+          }
         }
-      });
+      );
     } else {
-      createAlbum(imageFile!, name, description).then((value) => {
+      createAlbum(imageFile!, name, description, releaseDate).then((value) => {
         if (value) {
           clearFields();
           fetchAlbums();
@@ -123,6 +135,9 @@ export default function Album() {
               setName(albums[index].name);
               setDescription(albums[index].description);
               setImageFileUploaded(albums[index].image ?? PLACEHOLDER_IMAGE);
+              setReleaseDate(
+                albums[index].releaseDate ?? moment().format(DATETIME_FORMAT)
+              );
               setImageFile(null);
               setSelectedId(id);
               setIsDetailViewOpened(true);
@@ -149,6 +164,15 @@ export default function Album() {
               value={name}
               setValue={setName}
             />
+            <DateInput
+              sname="Release Date"
+              label=""
+              placeholder="Enter Music Release Date"
+              value={releaseDate}
+              setValue={setReleaseDate}
+            />
+          </div>
+          <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 md:space-x-2">
             <TextInput
               sname="Short Description"
               label=""

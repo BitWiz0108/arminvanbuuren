@@ -10,13 +10,19 @@ import TextInput from "@/components/TextInput";
 import ButtonUpload from "@/components/ButtonUpload";
 import RadialProgress from "@/components/RadialProgress";
 
-import { FILE_TYPE, PLACEHOLDER_IMAGE } from "@/libs/constants";
+import {
+  DATETIME_FORMAT,
+  FILE_TYPE,
+  PLACEHOLDER_IMAGE,
+} from "@/libs/constants";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
 import useCategory from "@/hooks/useCategory";
 
 import { ICategory } from "@/interfaces/ICategory";
+import moment from "moment";
+import DateInput from "@/components/DateInput";
 
 export default function Category() {
   const { isSignedIn } = useAuthValues();
@@ -37,11 +43,15 @@ export default function Category() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageFileUploaded, setImageFileUploaded] = useState<string>("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [releaseDate, setReleaseDate] = useState<string>(
+    moment().format(DATETIME_FORMAT)
+  );
 
   const clearFields = () => {
     setName("");
     setDescription("");
     setImageFile(null);
+    setReleaseDate(moment().format(DATETIME_FORMAT));
   };
 
   const onConfirm = () => {
@@ -51,7 +61,13 @@ export default function Category() {
     }
 
     if (isEditing) {
-      updateCategory(selectedId, imageFile, name, description).then((value) => {
+      updateCategory(
+        selectedId,
+        imageFile,
+        name,
+        description,
+        releaseDate
+      ).then((value) => {
         if (value) {
           clearFields();
           fetchCategories();
@@ -59,13 +75,15 @@ export default function Category() {
         }
       });
     } else {
-      createCategory(imageFile!, name, description).then((value) => {
-        if (value) {
-          clearFields();
-          fetchCategories();
-          toast.success("Successfully added!");
+      createCategory(imageFile!, name, description, releaseDate).then(
+        (value) => {
+          if (value) {
+            clearFields();
+            fetchCategories();
+            toast.success("Successfully added!");
+          }
         }
-      });
+      );
     }
 
     setIsDetailViewOpened(false);
@@ -120,6 +138,9 @@ export default function Category() {
             if (index >= 0) {
               setName(categorys[index].name);
               setDescription(categorys[index].description);
+              setReleaseDate(
+                categorys[index].releaseDate ?? moment().format(DATETIME_FORMAT)
+              );
               setImageFileUploaded(categorys[index].image ?? PLACEHOLDER_IMAGE);
               setImageFile(null);
               setSelectedId(id);
@@ -147,6 +168,15 @@ export default function Category() {
               value={name}
               setValue={setName}
             />
+            <DateInput
+              sname="Release Date"
+              label=""
+              placeholder="Enter Music Release Date"
+              value={releaseDate}
+              setValue={setReleaseDate}
+            />
+          </div>
+          <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 md:space-x-2">
             <TextInput
               sname="Short Description"
               label=""
