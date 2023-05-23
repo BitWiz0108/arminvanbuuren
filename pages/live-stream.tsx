@@ -375,6 +375,14 @@ export default function Livestream() {
               setSeconds(seconds);
               setShortDescription(livestreams[index].shortDescription);
               setIsExclusive(livestreams[index].isExclusive);
+              setPreviewVideoFileUrl(livestreams[index].previewVideo);
+              setPreviewVideoFileCompressedUrl(
+                livestreams[index].previewVideoCompressed
+              );
+              setFullVideoFileUrl(livestreams[index].fullVideo);
+              setFulllVideoFileCompressedUrl(
+                livestreams[index].fullVideoCompressed
+              );
 
               setSelectedId(id);
               setIsDetailedViewOpened(true);
