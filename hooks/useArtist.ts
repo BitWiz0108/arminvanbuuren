@@ -163,7 +163,9 @@ const useArtist = () => {
     backgroundVideoFile: File | null,
     backgroundVideoFileCompressed: File | null,
     backgroundImageFile: File | null,
-    backgroundImageFileCompressed: File | null
+    backgroundImageFileCompressed: File | null,
+    homePageDescription: string,
+    signInDescription: string
   ): Promise<IHomepage | null> => {
     return new Promise((resolve, reject) => {
       setIsLoading(true);
@@ -180,6 +182,8 @@ const useArtist = () => {
         formData.append("files", backgroundVideoFileCompressed ?? nullFile);
       }
 
+      formData.append("homePageDescription", homePageDescription.toString());
+      formData.append("signInDescription", signInDescription.toString());
       const xhr = new XMLHttpRequest();
       xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/home`);
       xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);

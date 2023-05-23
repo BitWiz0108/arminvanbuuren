@@ -44,17 +44,33 @@ const useLivestream = () => {
       setIsLoading(false);
       const data = await response.json();
       const livestreams = data.livestreams as Array<IStream>;
+      const previewVideoPromises = livestreams.map((livestream) => {
+        if (!livestream.previewVideo.includes("video/2023")) {
+          return livestream.previewVideo;
+        } else {
+          return getAWSSignedURL(livestream.previewVideo);
+        }
+      });
+      const previewVideoCompressedPromises = livestreams.map((livestream) => {
+        if (!livestream.previewVideoCompressed.includes("video/2023")) {
+          return livestream.previewVideoCompressed;
+        } else {
+          return getAWSSignedURL(livestream.previewVideoCompressed);
+        }
+      });
       const fullVideoPromises = livestreams.map((livestream) => {
-        return getAWSSignedURL(livestream.fullVideo);
+        if (!livestream.fullVideo.includes("video/2023")) {
+          return livestream.fullVideo;
+        } else {
+          return getAWSSignedURL(livestream.fullVideo);
+        }
       });
-      const fullVideoCompressedPromises = livestreams.map((livesstream) => {
-        return getAWSSignedURL(livesstream.fullVideoCompressed);
-      });
-      const previewVideoPromises = livestreams.map((livesstream) => {
-        return getAWSSignedURL(livesstream.fullVideoCompressed);
-      });
-      const previewVideoCompressedPromises = livestreams.map((livesstream) => {
-        return getAWSSignedURL(livesstream.fullVideoCompressed);
+      const fullVideoCompressedPromises = livestreams.map((livestream) => {
+        if (!livestream.fullVideoCompressed.includes("video/2023")) {
+          return livestream.fullVideoCompressed;
+        } else {
+          return getAWSSignedURL(livestream.fullVideoCompressed);
+        }
       });
       const result = await Promise.all([
         Promise.all(fullVideoPromises),

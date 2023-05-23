@@ -95,6 +95,9 @@ export default function PageSettings() {
     setBackgroundImageFileCompressedUploaded,
   ] = useState<string>("");
 
+  const [signInDescription, setSignInDescription] = useState<string>("");
+  const [homePageDescription, setHomePageDescription] = useState<string>("");
+
   const [adminBackgroundVideoFile, setAdminBackgroundVideoFile] =
     useState<File | null>(null);
   const [
@@ -170,6 +173,8 @@ export default function PageSettings() {
         setBackgroundVideoFileCompressedUploaded(
           data.backgroundVideoCompressed
         );
+        setHomePageDescription(data.homePageDescription);
+        setSignInDescription(data.signInDescription);
       }
     });
   };
@@ -209,24 +214,26 @@ export default function PageSettings() {
   };
 
   const onSaveHomeContent = () => {
-    if (backgroundType == FILE_TYPE.VIDEO) {
-      if (!backgroundVideoFile) {
-        toast.warn("Please select video file.");
-        return;
-      }
-    } else {
-      if (!backgroundImageFile) {
-        toast.warn("Please select image file.");
-        return;
-      }
-    }
+    // if (backgroundType == FILE_TYPE.VIDEO) {
+    //   if (!backgroundVideoFile) {
+    //     toast.warn("Please select video file.");
+    //     return;
+    //   }
+    // } else {
+    //   if (!backgroundImageFile) {
+    //     toast.warn("Please select image file.");
+    //     return;
+    //   }
+    // }
 
     updateHomeContent(
       backgroundType,
       backgroundVideoFile,
       backgroundVideoFileCompressed,
       backgroundImageFile,
-      backgroundImageFileCompressed
+      backgroundImageFileCompressed,
+      homePageDescription,
+      signInDescription
     ).then((data) => {
       if (data) {
         toast.success("Successfully saved!");
@@ -408,6 +415,22 @@ export default function PageSettings() {
             </div>
           )}
           <br />
+          <TextInput
+            sname="Homepage Text"
+            label=""
+            placeholder="Enter Homepage Description"
+            type="text"
+            value={homePageDescription}
+            setValue={setHomePageDescription}
+          />
+          <TextInput
+            sname="Signin Page Text"
+            label=""
+            placeholder="Enter Signin Page Description"
+            type="text"
+            value={signInDescription}
+            setValue={setSignInDescription}
+          />
           <ButtonSettings
             bgColor="cyan"
             label="Save"
