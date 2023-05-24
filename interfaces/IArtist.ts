@@ -28,6 +28,11 @@ export interface IArtist {
   youtube: string;
   soundcloud: string;
   logoImage: string;
+  siteName: string;
+  siteUrl: string;
+  siteTitle: string;
+  siteDescription: string;
+  siteSocialPreviewImage: string;
 }
 
 export const DEFAULT_ARTIST = {
@@ -54,4 +59,9 @@ export const DEFAULT_ARTIST = {
   youtube: "",
   soundcloud: "",
   logoImage: "",
+  siteName: "",
+  siteUrl: "",
+  siteTitle: "",
+  siteDescription: "",
+  siteSocialPreviewImage: "",
 } as IArtist;

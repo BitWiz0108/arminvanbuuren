@@ -135,6 +135,17 @@ export default function FanClub() {
   const [bannerType, setBannerType] = useState<FILE_TYPE>(FILE_TYPE.IMAGE);
   const [postType, setPostType] = useState<FILE_TYPE>(FILE_TYPE.IMAGE);
 
+  const [siteName, setSiteName] = useState<string>("");
+  const [siteUrl, setSiteUrl] = useState<string>("");
+  const [siteTitle, setSiteTitle] = useState<string>("");
+  const [siteDescription, setSiteDescription] = useState<string>("");
+  const [siteSocialPreviewImageFile, setsiteSocialPreviewImageFile] =
+    useState<File | null>(null);
+  const [
+    siteSocialPreviewImageFileUploaded,
+    setsiteSocialPreviewImageFileUploaded,
+  ] = useState<string>("");
+
   const handleArtistOptionChange = (value: FILE_TYPE) => {
     setBannerType(value);
   };
@@ -181,7 +192,12 @@ export default function FanClub() {
       twitter,
       youtube,
       instagram,
-      soundcloud
+      soundcloud,
+      siteName,
+      siteUrl,
+      siteTitle,
+      siteDescription,
+      siteSocialPreviewImageFile
     ).then((data) => {
       if (data) {
         setUsername(data.username);
@@ -197,6 +213,11 @@ export default function FanClub() {
         setBannerImageFile(null);
         setAvatarImageFile(null);
         setLogoImageFile(null);
+        setSiteName(data.siteName);
+        setSiteUrl(data.siteUrl);
+        setSiteTitle(data.siteTitle);
+        setSiteDescription(data.siteDescription);
+        setsiteSocialPreviewImageFile(null);
         toast.success("Successfully updated!");
       }
     });
@@ -334,6 +355,11 @@ export default function FanClub() {
           setSoundcloud(data.soundcloud ?? "");
           setLogoImageFile(null);
           setLogoImageFileUploaded(data.logoImage);
+          setSiteName(data.siteName);
+          setSiteUrl(data.siteUrl);
+          setSiteDescription(data.siteDescription);
+          setSiteTitle(data.siteTitle);
+          setsiteSocialPreviewImageFileUploaded(data.siteSocialPreviewImage);
         }
       });
     }
@@ -801,6 +827,50 @@ export default function FanClub() {
             setFile={setLogoImageFile}
             fileType={FILE_TYPE.IMAGE}
             uploaded={logoImageFileUploaded}
+          />
+          <br />
+          <div className="w-full flex flex-col md:flex-row justify-start items-center space-x-0 md:space-x-2">
+            <TextInput
+              sname="Website Name"
+              label=""
+              placeholder="Website Name"
+              type="text"
+              value={siteName}
+              setValue={setSiteName}
+            />
+            <TextInput
+              sname="Website Url"
+              label=""
+              placeholder="Website Url"
+              type="text"
+              value={siteUrl}
+              setValue={setSiteUrl}
+            />
+          </div>
+          <div className="w-full flex flex-col md:flex-row justify-start items-center space-x-0 md:space-x-2">
+            <TextInput
+              sname="Website Title"
+              label=""
+              placeholder="Website Title"
+              type="text"
+              value={siteTitle}
+              setValue={setSiteTitle}
+            />
+          </div>
+          <TextAreaInput
+            id="Website Description"
+            sname="Website Description"
+            placeholder="Website Description"
+            value={siteDescription}
+            setValue={setSiteDescription}
+          />
+          <ButtonUpload
+            id="upload_site_social_preview_image"
+            label="Upload Site Social Preview Image"
+            file={siteSocialPreviewImageFile}
+            setFile={setsiteSocialPreviewImageFile}
+            fileType={FILE_TYPE.IMAGE}
+            uploaded={siteSocialPreviewImageFileUploaded}
           />
           <br />
           <ButtonSettings bgColor="cyan" label="Save" onClick={onSaveProfile} />
