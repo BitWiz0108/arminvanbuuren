@@ -63,7 +63,12 @@ const useArtist = () => {
     twitter: string,
     youtube: string,
     instagram: string,
-    soundcloud: string
+    soundcloud: string,
+    siteName: string,
+    siteUrl: string,
+    siteTitle: string,
+    siteDescription: string,
+    siteSocialPreviewImageFile: File | null
   ): Promise<IArtist | null> => {
     return new Promise((resolve, reject) => {
       setIsLoading(true);
@@ -82,6 +87,7 @@ const useArtist = () => {
       }
       formData.append("files", avatarImageFile ?? nullFile);
       formData.append("files", logoImageFile ?? nullFile);
+      formData.append("files", siteSocialPreviewImageFile ?? nullFile);
 
       if (id) formData.append("id", id.toString());
       else formData.append("id", "");
@@ -100,6 +106,11 @@ const useArtist = () => {
       formData.append("youtube", youtube.toString());
       formData.append("instagram", instagram.toString());
       formData.append("soundcloud", soundcloud.toString());
+
+      formData.append("siteName", siteName.toString());
+      formData.append("siteUrl", siteUrl.toString());
+      formData.append("siteTitle", siteTitle.toString());
+      formData.append("siteDescription", siteDescription.toString());
 
       const xhr = new XMLHttpRequest();
       xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/artist`);
