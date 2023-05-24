@@ -17,6 +17,7 @@ import Reply from "@/components/Icons/Reply";
 import PostTable from "@/components/PostTable";
 import DateInput from "@/components/DateInput";
 import RadioBoxGroup from "@/components/RadioBoxGroup";
+import TextArea from "@/components/TextArea";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
@@ -857,7 +858,7 @@ export default function FanClub() {
               setValue={setSiteTitle}
             />
           </div>
-          <TextAreaInput
+          <TextArea
             id="Website Description"
             sname="Website Description"
             placeholder="Website Description"
