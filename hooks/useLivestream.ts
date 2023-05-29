@@ -8,6 +8,7 @@ import {
   API_VERSION,
   DATE_FORMAT,
   UPLOAD_TYPE,
+  US_DATETIME_FORMAT,
 } from "@/libs/constants";
 
 import { IStream, IStreamQueryParam } from "@/interfaces/IStream";
@@ -52,7 +53,7 @@ const useLivestream = () => {
         }
       });
       const previewVideoCompressedPromises = livestreams.map((livestream) => {
-        if (!livestream.previewVideoCompressed.includes("video/2023")) {
+        if (!livestream.previewVideoCompressed?.includes("video/2023")) {
           return livestream.previewVideoCompressed;
         } else {
           return getAWSSignedURL(livestream.previewVideoCompressed);
@@ -66,7 +67,7 @@ const useLivestream = () => {
         }
       });
       const fullVideoCompressedPromises = livestreams.map((livestream) => {
-        if (!livestream.fullVideoCompressed.includes("video/2023")) {
+        if (!livestream.fullVideoCompressed?.includes("video/2023")) {
           return livestream.fullVideoCompressed;
         } else {
           return getAWSSignedURL(livestream.fullVideoCompressed);
@@ -103,7 +104,7 @@ const useLivestream = () => {
     fullVideo: File | string,
     fullVideoCompressed: File | string,
     title: string,
-    categoryId: number | null,
+    categoryIds: Array<number> | null,
     releaseDate: string,
     description: string,
     duration: number,
@@ -134,10 +135,10 @@ const useLivestream = () => {
         formData.append("previewVideoCompressed", previewVideoCompressed);
       }
       formData.append("title", title.toString());
-      if (categoryId) {
-        formData.append("categoryId", categoryId.toString());
+      if (categoryIds) {
+        formData.append("categoryIds", categoryIds.toString());
       } else {
-        formData.append("categoryId", "");
+        formData.append("categoryIds", "");
       }
       if (user.id) {
         formData.append("singerId", user.id.toString());
@@ -148,7 +149,7 @@ const useLivestream = () => {
       }
       formData.append(
         "releaseDate",
-        moment(releaseDate).format(DATE_FORMAT).toString()
+        moment(releaseDate).format(US_DATETIME_FORMAT).toString()
       );
       formData.append("lyrics", lyrics.toString());
       formData.append("description", description.toString());
@@ -205,7 +206,7 @@ const useLivestream = () => {
     fullVideo: File | string | null,
     fullVideoCompressed: File | string | null,
     title: string,
-    categoryId: number | null,
+    categoryIds: Array<number> | null,
     releaseDate: string,
     description: string,
     duration: number,
@@ -239,10 +240,10 @@ const useLivestream = () => {
         formData.append("previewVideoCompressed", previewVideoCompressed ?? "");
       }
       formData.append("title", title.toString());
-      if (categoryId == null) {
-        formData.append("categoryId", "");
+      if (categoryIds == null) {
+        formData.append("categoryIds", "");
       } else {
-        formData.append("categoryId", categoryId.toString());
+        formData.append("categoryIds", categoryIds.toString());
       }
       if (user.id) {
         formData.append("singerId", user.id.toString());
@@ -253,7 +254,7 @@ const useLivestream = () => {
       }
       formData.append(
         "releaseDate",
-        moment(releaseDate).format(DATE_FORMAT).toString()
+        moment(releaseDate).format(US_DATETIME_FORMAT).toString()
       );
       formData.append("lyrics", lyrics.toString());
       formData.append("description", description.toString());

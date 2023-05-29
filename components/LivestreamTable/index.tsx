@@ -138,7 +138,15 @@ const LivestreamTable = ({
             </div>
             <div className="w-[50%] lg:w-[30%] truncate">{value.title}</div>
             <div className="w-[25%] hidden lg:flex truncate">
-              {value.category?.name}
+              {value.categories.map((data, index) => {
+                var categoryShow = "";
+                categoryShow += data.name;
+                if (index < value.categories.length - 1) {
+                  categoryShow += ", ";
+                }
+                return categoryShow;
+              })}
+              {/* {value.category?.name} */}
             </div>
             <div className="w-[20%] hidden lg:flex truncate">
               {moment(value.releaseDate).format(DATETIME_FORMAT)}

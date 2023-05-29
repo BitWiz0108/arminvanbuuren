@@ -313,7 +313,6 @@ export default function PageSettings() {
     updateTermsContent(termsContent).then((data) => {
       if (data) {
         setTermsContent(data.content);
-        console.log("!@#", data.content);
         toast.success("Successfully saved!");
       }
     });

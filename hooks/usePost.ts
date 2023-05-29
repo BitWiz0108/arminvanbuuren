@@ -93,6 +93,8 @@ const usePost = () => {
         formData.append("files", videoFileCompressed ?? nullFile);
       }
 
+      // formData.append("types", [].join(","))
+
       if (user.id) formData.append("authorId", user.id.toString());
       else formData.append("authorId", "");
       formData.append("title", title.toString());

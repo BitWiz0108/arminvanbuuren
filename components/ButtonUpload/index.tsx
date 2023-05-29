@@ -9,6 +9,7 @@ import {
   PLACEHOLDER_IMAGE,
   UPLOAD_TYPE,
 } from "@/libs/constants";
+import { duration } from "moment";
 
 type Props = {
   id: string;
@@ -18,6 +19,8 @@ type Props = {
   setFile: Function;
   uploaded?: string | null;
   uploadType?: UPLOAD_TYPE;
+  mainContent?: boolean;
+  setDuration?: Function;
 };
 
 const ACCEPT_VIDEO = "video/*";
@@ -30,10 +33,15 @@ const ButtonUpload = ({
   fileType,
   file,
   setFile,
+  setDuration,
   uploaded = null,
   uploadType = UPLOAD_TYPE.FILE,
+  mainContent = false,
 }: Props) => {
   const fileRef = useRef(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
   const [preview, setPreview] = useState<string | null>(null);
   const [accept, setAccept] = useState<string>("*/");
 
@@ -79,6 +87,23 @@ const ButtonUpload = ({
     }
   }, [fileType]);
 
+  const handleLoadedMetadata = () => {
+    // Access the duration attribute of the video element
+    if (mainContent) {
+      if (fileType == FILE_TYPE.VIDEO) {
+        const duration = videoRef.current?.duration;
+        if (setDuration) {
+          setDuration(duration);
+        }
+      } else if (fileType == null) {
+        const duration = audioRef.current?.duration;
+        if (setDuration) {
+          setDuration(duration);
+        }
+      }
+    }
+  };
+
   return (
     <div className="w-full h-full flex flex-col bg-[#24292d] rounded-lg p-5 my-1 space-y-2">
       <label htmlFor={id} className="w-full text-sm">
@@ -100,21 +125,25 @@ const ButtonUpload = ({
               />
             ) : fileType == FILE_TYPE.VIDEO ? (
               <video
+                ref={videoRef}
                 loop
                 muted
                 autoPlay
                 playsInline
                 className="w-full md:w-32 h-auto md:h-32 object-cover rounded-md"
                 src={preview}
+                onLoadedMetadata={handleLoadedMetadata}
               />
             ) : (
               <div className="rounded-md">
                 <audio
+                  ref={audioRef}
                   className="h-10 w-max-72"
                   playsInline
                   controlsList="nodownload nopictureinpicture noplaybackrate"
                   controls
                   src={preview}
+                  onLoadedMetadata={handleLoadedMetadata}
                 />
               </div>
             )
@@ -138,6 +167,7 @@ const ButtonUpload = ({
                 playsInline
                 className="w-full md:w-32 h-auto md:h-32 object-cover rounded-md"
                 src={uploaded}
+                onLoadedMetadata={handleLoadedMetadata}
               />
             ) : (
               <div className="rounded-md">

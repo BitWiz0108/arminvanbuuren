@@ -10,8 +10,8 @@ export interface IMusic {
   musicFile: string;
   musicFileCompressed: string;
   isExclusive: boolean;
-  albumId: number | null;
-  album: IAlbum;
+  albumIds: Array<number> | null;
+  albums: Array<IAlbum>;
   duration: number;
   title: string;
   musicGenreId: number | null;
@@ -33,7 +33,7 @@ export const DEFAULT_MUSIC = {
   musicFile: "",
   musicFileCompressed: "",
   isExclusive: false,
-  albumId: null,
+  albumIds: null,
   duration: 0,
   title: "",
   musicGenreId: null,

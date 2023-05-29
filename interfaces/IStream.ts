@@ -17,8 +17,8 @@ export interface IStream {
   shortDescription: string;
   lyrics: string;
   isExclusive: boolean;
-  categoryId: number | null;
-  category: ICategory | null;
+  categoryIds: Array<number> | null;
+  categories: Array<ICategory>;
   favorites: any;
 }
 
@@ -38,7 +38,7 @@ export const DEFAULT_ISTREAM = {
   shortDescription: "",
   lyrics: "",
   isExclusive: false,
-  categoryId: null,
+  categoryIds: null,
 } as IStream;
 
 export interface IStreamQueryParam {

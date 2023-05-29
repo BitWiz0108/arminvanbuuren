@@ -68,6 +68,7 @@ export default function FanClub() {
   const [isDetailViewOpened, setIsDetailedViewOpened] =
     useState<boolean>(false);
   const [isReplyViewOpened, setIsReplyViewOpened] = useState<boolean>(false);
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageFileUploaded, setImageFileUploaded] = useState<string>("");
   const [imageFileCompressed, setImageFileCompressed] = useState<File | null>(
@@ -75,6 +76,7 @@ export default function FanClub() {
   );
   const [imageFileCompressedUploaded, setImageFileCompresseduploaded] =
     useState<string>("");
+
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoFileUploaded, setVideoFileUploaded] = useState<string>("");
   const [videoFileCompressed, setVideoFileCompressed] = useState<File | null>(
@@ -82,6 +84,7 @@ export default function FanClub() {
   );
   const [videoFileCompressedUploaded, setVideoFileCompressedUploaded] =
     useState<string>("");
+
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -564,6 +567,7 @@ export default function FanClub() {
               value={content}
               setValue={setContent}
             />
+
             <RadioBoxGroup
               options={profileOptions}
               name="myRadioGroup"

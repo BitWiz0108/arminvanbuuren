@@ -17,7 +17,7 @@ import DateInput from "@/components/DateInput";
 import X from "@/components/Icons/X";
 import Reply from "@/components/Icons/Reply";
 import Delete from "@/components/Icons/Delete";
-import Select from "@/components/Select";
+import MultiSelect from "@/components/MultiSelect";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
@@ -70,7 +70,7 @@ export default function Livestream() {
   const [livestreams, setLivestreams] = useState<Array<IStream>>([]);
   const [title, setTitle] = useState<string>("");
   const [isExclusive, setIsExclusive] = useState<boolean>(false);
-  const [categoryId, setCategoryId] = useState<number | null>(null);
+  const [categoryIds, setCategoryIds] = useState<Array<number> | null>(null);
   const [releaseDate, setReleaseDate] = useState<string>(
     moment().format(DATETIME_FORMAT)
   );
@@ -79,6 +79,7 @@ export default function Livestream() {
   const [hours, setHours] = useState<number>(0);
   const [minutes, setMinutes] = useState<number>(0);
   const [seconds, setSeconds] = useState<number>(0);
+  const [liveStreamDuration, setLiveStreamDuration] = useState<number>(0);
   const [shortDescription, setShortDescription] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageFileUploaded, setImageFileUploaded] = useState<string>("");
@@ -144,7 +145,7 @@ export default function Livestream() {
     setFullVideoFileUrl("");
     setFulllVideoFileCompressedUrl("");
     setTitle("");
-    setCategoryId(null);
+    setCategoryIds(null);
     setReleaseDate(moment().format(DATETIME_FORMAT));
     setLyrics("");
     setDescription("");
@@ -192,7 +193,7 @@ export default function Livestream() {
           ? fulllVideoFileCompressed
           : fulllVideoFileCompressedUrl,
         title,
-        categoryId,
+        categoryIds,
         releaseDate,
         description,
         duration,
@@ -222,7 +223,7 @@ export default function Livestream() {
           ? fulllVideoFileCompressed!
           : fulllVideoFileCompressedUrl,
         title,
-        categoryId == null ? null : categoryId < 0 ? null : categoryId,
+        categoryIds == null ? null : categoryIds,
         releaseDate,
         description,
         duration,
@@ -251,22 +252,6 @@ export default function Livestream() {
     });
   };
 
-  useEffect(() => {
-    if (isSignedIn) {
-      fetchLivestreams();
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isSignedIn,
-    queryParams.page,
-    queryParams.limit,
-    queryParams.categoryName,
-    queryParams.artistName,
-    queryParams.releaseDate,
-    queryParams.title,
-  ]);
-
   const reply = () => {
     writeComment(selectedId, replyContent).then((value) => {
       if (value) {
@@ -286,6 +271,29 @@ export default function Livestream() {
       }
     });
   };
+  useEffect(() => {
+    if (liveStreamDuration) {
+      setHours(Math.floor(liveStreamDuration / 3600));
+      setMinutes(Math.floor((liveStreamDuration % 3600) / 60));
+      setSeconds(Math.floor(liveStreamDuration % 60));
+    }
+  }, [liveStreamDuration]);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      fetchLivestreams();
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    isSignedIn,
+    queryParams.page,
+    queryParams.limit,
+    queryParams.categoryName,
+    queryParams.artistName,
+    queryParams.releaseDate,
+    queryParams.title,
+  ]);
 
   useEffect(() => {
     if (isCommentViewOpened) {
@@ -358,7 +366,7 @@ export default function Livestream() {
                 livestreams[index].fullVideoCompressed
               );
               setTitle(livestreams[index].title);
-              setCategoryId(livestreams[index].categoryId);
+              setCategoryIds(livestreams[index].categoryIds);
               setReleaseDate(
                 livestreams[index].releaseDate ??
                   moment().format(DATETIME_FORMAT)
@@ -528,6 +536,7 @@ export default function Livestream() {
             </div>
             <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2">
               <TextInput
+                readOnly={uploadType == UPLOAD_TYPE.URL ? false : true}
                 sname="Hours"
                 label=""
                 placeholder="Enter Music Duration (s)"
@@ -537,6 +546,7 @@ export default function Livestream() {
               />
               <span className="hidden lg:inline-flex mt-5">:</span>
               <TextInput
+                readOnly={uploadType == UPLOAD_TYPE.URL ? false : true}
                 sname="Minutes"
                 label=""
                 placeholder="Enter Music Duration (s)"
@@ -546,6 +556,7 @@ export default function Livestream() {
               />
               <span className="hidden lg:inline-flex mt-5">:</span>
               <TextInput
+                readOnly={uploadType == UPLOAD_TYPE.URL ? false : true}
                 sname="Seconds"
                 label=""
                 placeholder="Enter Music Duration (s)"
@@ -555,11 +566,24 @@ export default function Livestream() {
               />
             </div>
             <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2">
-              <Select
-                defaultValue={""}
+              <MultiSelect
+                defaultValue={categories.map((category) => {
+                  return {
+                    label: "Select Album",
+                    value: "",
+                  };
+                })}
                 defaultLabel="Select Livestream Category"
-                value={categoryId ?? ""}
-                setValue={(value: string) => setCategoryId(Number(value))}
+                value={categoryIds?.map((categoryId) => {
+                  const category = Object.values(categories).filter(
+                    (category) => category.id === categoryId
+                  )[0];
+                  return {
+                    label: category.name,
+                    value: categoryId.toString(),
+                  };
+                })}
+                setValue={(value: Array<number>) => setCategoryIds(value)}
                 label="Select Livestream Category"
                 options={categories.map((category) => {
                   return {
@@ -568,6 +592,7 @@ export default function Livestream() {
                   };
                 })}
               />
+
               <DateInput
                 sname="Release Date"
                 label=""
@@ -626,6 +651,8 @@ export default function Livestream() {
                   fileType={FILE_TYPE.VIDEO}
                   uploaded={previewVideoFileUploaded}
                   uploadType={uploadType}
+                  mainContent={true}
+                  setDuration={setLiveStreamDuration}
                 />
               </div>
               <div className="w-full lg:w-1/2">

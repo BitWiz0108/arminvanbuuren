@@ -12,7 +12,7 @@ import ButtonUpload from "@/components/ButtonUpload";
 import MusicTable from "@/components/MusicTable";
 import RadialProgress from "@/components/RadialProgress";
 import Switch from "@/components/Switch";
-import Select from "@/components/Select";
+import MultiSelect from "@/components/MultiSelect";
 import DateInput from "@/components/DateInput";
 
 import { useAuthValues } from "@/contexts/contextAuth";
@@ -52,6 +52,7 @@ export default function Music() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUploaded, setImageUploaded] = useState<string>("");
   const [musicFile, setMusicFile] = useState<File | null>(null);
+  const [duration, setDuration] = useState<number>(0);
   const [musicFileUploaded, setMusicFileUploaded] = useState<string>("");
   const [musicFileCompressed, setMusicFileCompressed] = useState<File | null>(
     null
@@ -60,7 +61,7 @@ export default function Music() {
     useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [isExclusive, setIsExclusive] = useState<boolean>(false);
-  const [albumId, setAlbumId] = useState<number | null>(null);
+  const [albumIds, setAlbumIds] = useState<Array<number> | null>(null);
   const [releaseDate, setReleaseDate] = useState<string>(
     moment().format(DATETIME_FORMAT)
   );
@@ -87,7 +88,7 @@ export default function Music() {
     setMusicFileCompressed(null);
     setTitle("");
     setIsExclusive(false);
-    setAlbumId(null);
+    setAlbumIds(null);
     setReleaseDate(moment().format(DATETIME_FORMAT));
     setMinutes(0);
     setSeconds(0);
@@ -117,7 +118,7 @@ export default function Music() {
         musicFile,
         musicFileCompressed,
         isExclusive,
-        albumId,
+        albumIds,
         duration,
         title,
         null,
@@ -140,7 +141,7 @@ export default function Music() {
         musicFile!,
         musicFileCompressed!,
         isExclusive,
-        albumId == null ? null : albumId < 0 ? null : albumId,
+        albumIds == null ? null : albumIds,
         duration,
         title,
         null,
@@ -168,6 +169,13 @@ export default function Music() {
       }
     });
   };
+
+  useEffect(() => {
+    if (duration) {
+      setMinutes(Math.floor(duration / 60));
+      setSeconds(Math.floor(duration % 60));
+    }
+  }, [duration]);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -236,7 +244,7 @@ export default function Music() {
               setMusicFileCompressedUploaded(musics[index].musicFileCompressed);
               setTitle(musics[index].title);
               setIsExclusive(musics[index].isExclusive);
-              setAlbumId(musics[index].albumId);
+              setAlbumIds(musics[index].albumIds);
               setReleaseDate(
                 musics[index].releaseDate ?? moment().format(DATETIME_FORMAT)
               );
@@ -280,6 +288,7 @@ export default function Music() {
                   placeholder="Enter Music Duration (s)"
                   type="text"
                   value={minutes}
+                  readOnly={true}
                   setValue={(value: string) => setMinutes(Number(value))}
                 />
                 <span className="hidden lg:inline-flex mt-5">:</span>
@@ -289,16 +298,30 @@ export default function Music() {
                   placeholder="Enter Music Duration (s)"
                   type="text"
                   value={seconds}
+                  readOnly={true}
                   setValue={(value: string) => setSeconds(Number(value))}
                 />
               </div>
             </div>
             <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 md:space-x-2">
-              <Select
-                defaultValue={""}
+              <MultiSelect
+                defaultValue={albums.map((album) => {
+                  return {
+                    label: "Select Album",
+                    value: "",
+                  };
+                })}
                 defaultLabel="Select Album"
-                value={albumId ?? ""}
-                setValue={(value: string) => setAlbumId(Number(value))}
+                value={albumIds?.map((albumId) => {
+                  const album = Object.values(albums).filter(
+                    (album) => album.id === albumId
+                  )[0];
+                  return {
+                    label: album.name,
+                    value: albumId.toString(),
+                  };
+                })}
+                setValue={(value: Array<number>) => setAlbumIds(value)}
                 label="Select Album"
                 options={albums.map((album) => {
                   return {
@@ -352,6 +375,8 @@ export default function Music() {
                   setFile={setMusicFile}
                   fileType={null}
                   uploaded={musicFileUploaded}
+                  mainContent={true}
+                  setDuration={setDuration}
                 />
               </div>
               <div className="w-full lg:w-1/2">

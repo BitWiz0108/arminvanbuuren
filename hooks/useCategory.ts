@@ -3,7 +3,12 @@ import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import { API_BASE_URL, API_VERSION, DATE_FORMAT } from "@/libs/constants";
+import {
+  API_BASE_URL,
+  API_VERSION,
+  DATE_FORMAT,
+  US_DATETIME_FORMAT,
+} from "@/libs/constants";
 
 import { ICategory } from "@/interfaces/ICategory";
 import moment from "moment";
@@ -58,7 +63,7 @@ const useCategory = () => {
       formData.append("description", description.toString());
       formData.append(
         "releaseDate",
-        moment(releaseDate).format(DATE_FORMAT).toString()
+        moment(releaseDate).format(US_DATETIME_FORMAT).toString()
       );
       formData.append("copyright", "");
 
@@ -123,7 +128,7 @@ const useCategory = () => {
       formData.append("description", description.toString());
       formData.append(
         "releaseDate",
-        moment(releaseDate).format(DATE_FORMAT).toString()
+        moment(releaseDate).format(US_DATETIME_FORMAT).toString()
       );
       formData.append("copyright", "");
 
