@@ -874,7 +874,17 @@ export default function FanClub() {
             uploaded={siteSocialPreviewImageFileUploaded}
           />
           <br />
-          <ButtonSettings bgColor="cyan" label="Save" onClick={onSaveProfile} />
+          <div className="flex space-x-2 mt-5">
+            <ButtonSettings
+              label="Cancel"
+              onClick={() => setTab(FANCLUB_TAB.POSTS)}
+            />
+            <ButtonSettings
+              bgColor="cyan"
+              label="Save"
+              onClick={onSaveProfile}
+            />
+          </div>
         </div>
       </div>
     </div>
