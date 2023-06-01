@@ -718,6 +718,7 @@ export default function FanClub() {
               placeholder="Date of birth"
               value={dob}
               setValue={setDob}
+              isTime={false}
             />
             <TextInput
               sname="Artistname"

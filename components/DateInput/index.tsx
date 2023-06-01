@@ -2,7 +2,7 @@ import { twMerge } from "tailwind-merge";
 import DatePicker from "react-datepicker";
 import moment from "moment";
 
-import { DATETIME_FORMAT, US_DATETIME_FORMAT } from "@/libs/constants";
+import { US_DATETIME_FORMAT, US_DATEONLY_FORMAT } from "@/libs/constants";
 
 type Props = {
   label: string;
@@ -11,6 +11,7 @@ type Props = {
   setValue: Function;
   sname?: string;
   id?: string;
+  isTime? : boolean;
 };
 
 const DateInput = ({
@@ -20,6 +21,7 @@ const DateInput = ({
   setValue,
   sname,
   id,
+  isTime = true,
 }: Props) => {
   return (
     <div className="w-full py-2 flex flex-col space-y-1">
@@ -35,12 +37,12 @@ const DateInput = ({
           className="w-full flex text-primary text-sm placeholder-secondary bg-transparent outline-none border-none focus:outline-none focus:border-none"
           selected={value ? moment(value).toDate() : new Date()}
           onChange={(date) => setValue(date)}
-          dateFormat={US_DATETIME_FORMAT}
+          dateFormat={isTime ? US_DATETIME_FORMAT : US_DATEONLY_FORMAT}
           placeholderText={placeholder}
-          showTimeSelect
-          timeFormat="HH:mm"
-          timeIntervals={15}
-          timeCaption="Time"
+          showTimeSelect = {isTime}
+          timeFormat={isTime ? "HH:mm" : ""}
+          timeIntervals={isTime? 15 : 0}
+          timeCaption={isTime ? "Time" : ""}
         />
       </div>
     </div>

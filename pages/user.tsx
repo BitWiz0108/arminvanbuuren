@@ -382,6 +382,7 @@ export default function User() {
                 placeholder="Date of birth"
                 value={dob}
                 setValue={setDob}
+                isTime={false}
               />
             </div>
           </div>
