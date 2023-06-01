@@ -305,7 +305,7 @@ export default function FanClub() {
     if (isSignedIn) {
       fetchArtist(user.id).then((data) => {
         if (data) {
-          handleArtistOptionChange(data.bannerType);
+          handleArtistOptionChange(data.bannerType ?? "");
           setUsername(data.username ?? "");
           setFirstName(data.firstName ?? "");
           setLastName(data.lastName ?? "");
@@ -333,10 +333,10 @@ export default function FanClub() {
           setSoundcloud(data.soundcloud ?? "");
           setLogoImageFile(null);
           setLogoImageFileUploaded(data.logoImage);
-          setSiteName(data.siteName);
-          setSiteUrl(data.siteUrl);
-          setSiteDescription(data.siteDescription);
-          setSiteTitle(data.siteTitle);
+          setSiteName(data.siteName ?? "");
+          setSiteUrl(data.siteUrl ?? "");
+          setSiteDescription(data.siteDescription ?? "");
+          setSiteTitle(data.siteTitle ?? "");
           setsiteSocialPreviewImageFileUploaded(data.siteSocialPreviewImage);
         }
       });

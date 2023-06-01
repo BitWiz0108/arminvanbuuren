@@ -71,13 +71,14 @@ const useArtist = () => {
     siteSocialPreviewImageFile: File | null
   ): Promise<IArtist | null> => {
     return new Promise((resolve, reject) => {
+      console.log("!!!!!", artistName);
       setIsLoading(true);
 
       const nullFile = new File([""], "garbage.bin");
 
       const formData = new FormData();
-
-      formData.append("bannerType", bannerType.toString());
+      if(bannerType) formData.append("bannerType", bannerType.toString());
+      else formData.append("bannerType", "");
       if (bannerType == FILE_TYPE.IMAGE) {
         formData.append("files", bannerImageFile ?? nullFile);
         formData.append("files", bannerImageFileCompressed ?? nullFile);
@@ -107,10 +108,14 @@ const useArtist = () => {
       formData.append("instagram", instagram.toString());
       formData.append("soundcloud", soundcloud.toString());
 
-      formData.append("siteName", siteName.toString());
-      formData.append("siteUrl", siteUrl.toString());
-      formData.append("siteTitle", siteTitle.toString());
-      formData.append("siteDescription", siteDescription.toString());
+      if(siteName) formData.append("siteName", siteName.toString());
+      else formData.append("siteName", "");
+      if(siteUrl) formData.append("siteUrl", siteUrl.toString());
+      else  formData.append("siteUrl", "");
+      if(siteTitle) formData.append("siteTitle", siteTitle.toString());
+      else formData.append("siteTitle", "");
+      if(siteDescription) formData.append("siteDescription", siteDescription.toString());
+      else formData.append("siteDescription","");
 
       const xhr = new XMLHttpRequest();
       xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/artist`);
