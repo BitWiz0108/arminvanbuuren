@@ -182,7 +182,7 @@ export default function Signin() {
                 alt=""
               />
             ) : (
-              <div className="absolute -left-4 -top-4 -right-4 -bottom-4">
+              <div className="absolute -left-4 -top-4 -right-4 -bottom-4 filter blur-[5px]">
                 <video
                   loop
                   muted
