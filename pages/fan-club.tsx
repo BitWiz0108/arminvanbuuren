@@ -18,6 +18,8 @@ import PostTable from "@/components/PostTable";
 import DateInput from "@/components/DateInput";
 import RadioBoxGroup from "@/components/RadioBoxGroup";
 import TextArea from "@/components/TextArea";
+import ButtonUploadWithFileType from "@/components/ButtonUploadWithFileType";
+import PlusCircle from "@/components/Icons/PlusCircle";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
@@ -31,7 +33,8 @@ import {
   IMAGE_SM_BLUR_DATA_URL,
 } from "@/libs/constants";
 
-import { DEFAULT_POST, IPost } from "@/interfaces/IPost";
+import { DEFAULT_POST, IContentBody, IPost } from "@/interfaces/IPost";
+
 
 const TextAreaInput = dynamic(() => import("@/components/TextAreaInput"), {
   ssr: false,
@@ -68,20 +71,11 @@ export default function FanClub() {
   const [isDetailViewOpened, setIsDetailedViewOpened] =
     useState<boolean>(false);
   const [isReplyViewOpened, setIsReplyViewOpened] = useState<boolean>(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imageFileUploaded, setImageFileUploaded] = useState<string>("");
-  const [imageFileCompressed, setImageFileCompressed] = useState<File | null>(
-    null
-  );
-  const [imageFileCompressedUploaded, setImageFileCompresseduploaded] =
-    useState<string>("");
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [videoFileUploaded, setVideoFileUploaded] = useState<string>("");
-  const [videoFileCompressed, setVideoFileCompressed] = useState<File | null>(
-    null
-  );
-  const [videoFileCompressedUploaded, setVideoFileCompressedUploaded] =
-    useState<string>("");
+
+  const [files, setFiles] = useState<
+    Array<IContentBody>
+  >([]);
+
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -134,8 +128,6 @@ export default function FanClub() {
   const [logoImageFileUploaded, setLogoImageFileUploaded] =
     useState<string>("");
   const [bannerType, setBannerType] = useState<FILE_TYPE>(FILE_TYPE.IMAGE);
-  const [postType, setPostType] = useState<FILE_TYPE>(FILE_TYPE.IMAGE);
-
   const [siteName, setSiteName] = useState<string>("");
   const [siteUrl, setSiteUrl] = useState<string>("");
   const [siteTitle, setSiteTitle] = useState<string>("");
@@ -151,20 +143,13 @@ export default function FanClub() {
     setBannerType(value);
   };
 
-  const handlePostOptionChange = (value: FILE_TYPE) => {
-    setPostType(value);
-  };
-
   const profileOptions = [
     { label: "Image", value: FILE_TYPE.IMAGE },
     { label: "Video", value: FILE_TYPE.VIDEO },
   ];
 
   const clearFields = () => {
-    setImageFile(null);
-    setImageFileCompressed(null);
-    setVideoFile(null);
-    setVideoFileCompressed(null);
+    setFiles([]);
     setTitle("");
     setContent("");
   };
@@ -225,28 +210,27 @@ export default function FanClub() {
   };
 
   const onConfirm = async () => {
-    if (postType == FILE_TYPE.IMAGE && ((!isEditing && !imageFile) || !title)) {
-      toast.warn("Please  fill the required fields.");
-      return;
-    } else if (
-      postType == FILE_TYPE.VIDEO &&
-      ((!isEditing && !videoFile) || !title)
-    ) {
-      toast.warn("Please fill the required fields.");
-      return;
-    }
+    let invalid = false;
+    files.forEach((file) => {
+      if ((!isEditing && (!file.type || !file.file || !file.fileCompressed)) || !title) {
+        invalid = true;
+      }
+    })
+    if (invalid) { toast.warn("Please  fill the required fields."); return }
 
     if (isEditing) {
-      updatePost(
-        selectedId,
-        postType,
-        imageFile,
-        imageFileCompressed,
-        videoFile,
-        videoFileCompressed,
-        title,
-        content
-      ).then((value) => {
+      invalid = false
+      files.forEach((file) => {
+        if (file.type && (!file.file || !file.fileCompressed) || (typeof file.file == 'object' && typeof file.fileCompressed == 'string') || (typeof file.file == 'string' && typeof file.fileCompressed == 'object')) {
+          invalid = true
+        }
+      })
+      if (invalid) { toast.warn("Please  fill the required fields."); return }
+
+      // @ts-ignore
+      updatePost(selectedId, files.filter((file) => {
+        return typeof file.file == 'object' && typeof file.fileCompressed == 'object'
+      }), title, content).then((value) => {
         if (value) {
           clearFields();
           fetchPosts();
@@ -254,19 +238,12 @@ export default function FanClub() {
         }
       });
     } else {
-      createPost(
-        postType,
-        imageFile!,
-        imageFileCompressed!,
-        videoFile!,
-        videoFileCompressed!,
-        title,
-        content
-      ).then((value) => {
+      console.log(files, "files");
+      // @ts-ignore
+      createPost(files, title, content).then((value) => {
         if (value) {
           clearFields();
           fetchPosts();
-
           toast.success("Successfully added!");
         }
       });
@@ -342,7 +319,7 @@ export default function FanClub() {
           setBannerImageFile(null);
           setBannerImageFileUploaded(data.bannerImage);
           setBannerImageFileCompressed(null);
-          setBannerImageFileUploaded(data.bannerImageCompressed);
+          setBannerImageFileCompressedUploaded(data.bannerImageCompressed);
           setBannerVideoFile(null);
           setBannerVideoFileUploaded(data.bannerVideo);
           setBannerVideoFileCompressed(null);
@@ -399,21 +376,13 @@ export default function FanClub() {
             })
           }
           updatePost={(id: number) => {
-            setIsEditing(true);
             const index = posts.findIndex((post) => post.id == id);
             if (index >= 0) {
-              handlePostOptionChange(posts[index].type);
-              setImageFile(null);
-              setImageFileUploaded(posts[index].image);
-              setImageFileCompressed(null);
-              setImageFileCompresseduploaded(posts[index].imageCompressed);
-              setVideoFile(null);
-              setVideoFileUploaded(posts[index].video);
-              setVideoFileCompressed(null);
-              setVideoFileCompressedUploaded(posts[index].videoCompressed);
+              setIsEditing(true);
               setTitle(posts[index].title);
               setContent(posts[index].content);
-              setPostType(posts[index].type);
+              const files = posts[index].files.slice()
+              setFiles(files);
               setSelectedId(id);
               setIsDetailedViewOpened(true);
             }
@@ -564,59 +533,85 @@ export default function FanClub() {
               value={content}
               setValue={setContent}
             />
-            <RadioBoxGroup
-              options={profileOptions}
-              name="myRadioGroup"
-              selectedValue={postType}
-              onChange={(value) => handlePostOptionChange(value as FILE_TYPE)}
-            />
-            {postType == FILE_TYPE.IMAGE ? (
-              <div className="w-full flex flex-col md:flex-row justify-start items-center space-x-0 md:space-x-2 mt-5">
-                <div className="w-full flex flex-col md:flex-row justify-start items-center">
-                  <ButtonUpload
-                    id="upload_high_quality_image"
-                    label="Upload High Quality Image *"
-                    file={imageFile}
-                    setFile={setImageFile}
-                    fileType={FILE_TYPE.IMAGE}
-                    uploaded={imageFileUploaded}
-                  />
+
+            {files.map((file, index) => {
+              return (
+                <div key={index} className="w-full flex flex-row justify-start items-start gap-2">
+                  {
+                    file.type == null ? <></> :
+                      <>
+                        <div className="w-full flex flex-col lg:flex-row justify-start items-start gap-2">
+                          <ButtonUploadWithFileType
+                            id={`upload_high_quality_image_${index}`}
+                            label={`Upload High Quality ${file.type == FILE_TYPE.IMAGE ? "Image" : "Video"} *`}
+                            file={file.file}
+                            setFile={(file: File) => {
+                              const tfiles = files.slice();
+                              tfiles[index].file = file;
+                              setFiles(tfiles);
+                            }}
+                            fileType={file.type}
+                            setFileType={(type: FILE_TYPE) => {
+                              const tfiles = files.slice();
+                              tfiles[index].type = type;
+                              setFiles(tfiles);
+                            }}
+                            uploaded={typeof file.file === "string" ? file.file : ""}
+                          />
+                          <ButtonUploadWithFileType
+                            id={`upload_low_quality_image_${index}`}
+                            label={`Upload Low Quality ${file.type == FILE_TYPE.IMAGE ? "Image" : "Video"} *`}
+                            file={file.fileCompressed}
+                            setFile={(file: File) => {
+                              const tfiles = files.slice();
+                              tfiles[index].fileCompressed = file;
+                              setFiles(tfiles);
+                            }}
+                            fileType={file.type}
+                            setFileType={(type: FILE_TYPE) => {
+                              const tfiles = files.slice();
+                              tfiles[index].type = type;
+                              setFiles(tfiles);
+                            }}
+                            uploaded={typeof file.fileCompressed === "string" ? file.fileCompressed : ""}
+                          />
+                        </div>
+                        <div className=" mt-3 w-7 min-w-[28px] h-7 flex justify-center items-center cursor-pointer"
+                          onClick={() => {
+                            const tfiles = files.slice();
+                            if (isEditing) {
+                              tfiles[index].type = null;
+                              tfiles[index].file = null;
+                              tfiles[index].fileCompressed = null;
+                            } else {
+                              tfiles.splice(index, 1)
+                            }
+
+                            setFiles(tfiles);
+                          }}
+                        >
+                          <Delete width={28} height={28} />
+                        </div>
+                      </>
+                  }
+
                 </div>
-                <div className="w-full flex flex-col md:flex-row justify-start items-center">
-                  <ButtonUpload
-                    id="upload_low_quality_image"
-                    label="Upload Low Quality Image"
-                    file={imageFileCompressed}
-                    setFile={setImageFileCompressed}
-                    fileType={FILE_TYPE.IMAGE}
-                    uploaded={imageFileCompressedUploaded}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="w-full flex flex-col md:flex-row justify-start items-center space-x-0 md:space-x-2 mt-5">
-                <div className="w-full flex flex-col md:flex-row justify-start items-center">
-                  <ButtonUpload
-                    id="upload_high_quality_video"
-                    label="Upload High Quality Video"
-                    file={videoFile}
-                    setFile={setVideoFile}
-                    fileType={FILE_TYPE.VIDEO}
-                    uploaded={videoFileUploaded}
-                  />
-                </div>
-                <div className="w-full flex flex-col md:flex-row justify-start items-center">
-                  <ButtonUpload
-                    id="upload_low_quality_video"
-                    label="Upload Low Quality Video"
-                    file={videoFileCompressed}
-                    setFile={setVideoFileCompressed}
-                    fileType={FILE_TYPE.VIDEO}
-                    uploaded={videoFileCompressedUploaded}
-                  />
-                </div>
-              </div>
-            )}
+              );
+            })}
+            <div className="w-full h-10 mt-5 -ml-4 flex justify-center items-center cursor-pointer"
+              onClick={() => {
+                const tfiles = files.slice();
+                tfiles.push({
+                  id: null,
+                  file: null,
+                  fileCompressed: null,
+                  type: FILE_TYPE.VIDEO
+                })
+                setFiles(tfiles);
+              }}
+            >
+              <PlusCircle width={40} height={40} />
+            </div>
             <div className="flex space-x-2 mt-5">
               <ButtonSettings
                 label="Cancel"
@@ -641,7 +636,7 @@ export default function FanClub() {
             onChange={(value) => handleArtistOptionChange(value as FILE_TYPE)}
           />
           {bannerType == FILE_TYPE.IMAGE ? (
-            <div className="w-full flex flex-col justify-start items-center space-x-0 md:space-x-2">
+            <div className="w-full flex flex-col justify-start items-center space-x-0 lg:space-x-2">
               <ButtonUpload
                 id="upload_high_quality_banner_image"
                 label="Upload High Quality Banner Image *"
@@ -660,7 +655,7 @@ export default function FanClub() {
               />
             </div>
           ) : (
-            <div className="w-full flex flex-col justify-start items-center space-x-0 md:space-x-2">
+            <div className="w-full flex flex-col justify-start items-center space-x-0 lg:space-x-2">
               <ButtonUpload
                 id="upload_high_quality_banner_video"
                 label="Upload High Quality Banner Video *"
@@ -895,21 +890,19 @@ export default function FanClub() {
       <div className="relative w-full min-h-screen flex flex-col justify-start items-center overflow-x-hidden overflow-y-auto">
         <div className="w-full flex justify-start items-center space-x-2 pl-20 pr-5 pt-[31px] border-b border-gray-700">
           <button
-            className={`inline-flex justify-center items-center rounded-tl-md rounded-tr-md px-5 h-11 border-b ${
-              tab == FANCLUB_TAB.POSTS
-                ? "border-primary bg-bluePrimary text-primary"
-                : "border-secondary bg-transparent text-secondary hover:bg-background"
-            } transition-all duration-300`}
+            className={`inline-flex justify-center items-center rounded-tl-md rounded-tr-md px-5 h-11 border-b ${tab == FANCLUB_TAB.POSTS
+              ? "border-primary bg-bluePrimary text-primary"
+              : "border-secondary bg-transparent text-secondary hover:bg-background"
+              } transition-all duration-300`}
             onClick={() => setTab(FANCLUB_TAB.POSTS)}
           >
             Posts
           </button>
           <button
-            className={`inline-flex justify-center items-center rounded-tl-md rounded-tr-md px-5 h-11 border-b ${
-              tab == FANCLUB_TAB.ABOUTME
-                ? "border-primary bg-bluePrimary text-primary"
-                : "border-secondary bg-transparent text-secondary hover:bg-background"
-            } transition-all duration-300`}
+            className={`inline-flex justify-center items-center rounded-tl-md rounded-tr-md px-5 h-11 border-b ${tab == FANCLUB_TAB.ABOUTME
+              ? "border-primary bg-bluePrimary text-primary"
+              : "border-secondary bg-transparent text-secondary hover:bg-background"
+              } transition-all duration-300`}
             onClick={() => setTab(FANCLUB_TAB.ABOUTME)}
           >
             About Me
@@ -920,8 +913,8 @@ export default function FanClub() {
           (isDetailViewOpened
             ? detailContentView
             : isReplyViewOpened
-            ? replyView
-            : tableView)}
+              ? replyView
+              : tableView)}
         {tab == FANCLUB_TAB.ABOUTME && aboutMe}
       </div>
 

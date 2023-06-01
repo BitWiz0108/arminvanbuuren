@@ -48,11 +48,11 @@ const PostTable = ({
             key={index}
             className="w-full mt-2 py-3 rounded-md px-5 border border-gray-700 flex flex-row justify-start items-center gap-1"
           >
-            {value.type == FILE_TYPE.IMAGE ? (
+            {value.files[0]?.type == FILE_TYPE.IMAGE ? (
               <div className="w-[20%] min-w-[100px]">
                 <Image
                   className="w-24 h-12 object-cover rounded-md overflow-hidden"
-                  src={value.image ?? DEFAULT_BANNER_IMAGE}
+                  src={value.files[0].fileCompressed?.toString() ?? DEFAULT_BANNER_IMAGE}
                   width={1600}
                   height={900}
                   alt=""
@@ -68,7 +68,7 @@ const PostTable = ({
                   autoPlay
                   playsInline
                   className="w-24 h-12 object-cover rounded-md overflow-hidden"
-                  src={value.videoCompressed}
+                  src={value.files[0]?.fileCompressed?.toString()}
                 />
               </div>
             )}

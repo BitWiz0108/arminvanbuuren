@@ -3,7 +3,11 @@ import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import { API_BASE_URL, API_VERSION, DATE_FORMAT } from "@/libs/constants";
+import {
+  API_BASE_URL,
+  API_VERSION,
+  RELEASEDATETIME_FORMAT,
+} from "@/libs/constants";
 
 import { IMusic, IMusicQueryParam } from "@/interfaces/IMusic";
 import { getAWSSignedURL } from "@/libs/aws";
@@ -69,7 +73,7 @@ const useMusic = () => {
     musicFile: File,
     musicFileCompressed: File,
     isExclusive: boolean,
-    albumId: number | null,
+    albumIds: Array<number> | null,
     duration: number,
     title: string,
     musicGenrerId: number | null,
@@ -90,10 +94,10 @@ const useMusic = () => {
       formData.append("files", musicFileCompressed);
       formData.append("files", coverImage);
       formData.append("isExclusive", isExclusive.toString());
-      if (albumId) {
-        formData.append("albumId", albumId.toString());
+      if (albumIds) {
+        formData.append("albumIds", albumIds.toString());
       } else {
-        formData.append("albumId", "");
+        formData.append("albumIds", "");
       }
       formData.append("duration", duration.toString());
       formData.append("title", title.toString());
@@ -108,7 +112,7 @@ const useMusic = () => {
       formData.append("description", description.toString());
       formData.append(
         "releaseDate",
-        moment(releaseDate).format(DATE_FORMAT).toString()
+        moment(releaseDate).format(RELEASEDATETIME_FORMAT).toString()
       );
       const xhr = new XMLHttpRequest();
       xhr.open("POST", `${API_BASE_URL}/${API_VERSION}/admin/music`);
@@ -160,7 +164,7 @@ const useMusic = () => {
     musicFile: File | null,
     musicFileCompressed: File | null,
     isExclusive: boolean,
-    albumId: number | null,
+    albumIds: Array<number> | null,
     duration: number,
     title: string,
     musicGenrerId: number | null,
@@ -182,10 +186,10 @@ const useMusic = () => {
       formData.append("files", musicFileCompressed ?? nullFile);
       formData.append("files", coverImage ?? nullFile);
       formData.append("isExclusive", isExclusive.toString());
-      if (albumId == null) {
-        formData.append("albumId", "");
+      if (albumIds == null) {
+        formData.append("albumIds", "");
       } else {
-        formData.append("albumId", albumId.toString());
+        formData.append("albumIds", albumIds.toString());
       }
       formData.append("duration", duration.toString());
       formData.append("title", title.toString());
@@ -200,7 +204,7 @@ const useMusic = () => {
       formData.append("description", description.toString());
       formData.append(
         "releaseDate",
-        moment(releaseDate).format(DATE_FORMAT).toString()
+        moment(releaseDate).format(RELEASEDATETIME_FORMAT).toString()
       );
       const xhr = new XMLHttpRequest();
       xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/music`);

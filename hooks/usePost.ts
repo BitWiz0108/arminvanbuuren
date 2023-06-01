@@ -69,11 +69,7 @@ const usePost = () => {
   };
 
   const createPost = async (
-    postType: FILE_TYPE,
-    imageFile: File,
-    imageFileCompressed: File | null,
-    videoFile: File,
-    videoFileCompressed: File | null,
+    files: Array<{ type: FILE_TYPE; file: File; fileCompressed: File }>,
     title: string,
     content: string
   ): Promise<IPost | null> => {
@@ -81,17 +77,15 @@ const usePost = () => {
       setIsLoading(true);
       setLoadingProgress(0);
 
-      const nullFile = new File([""], "garbage.bin");
-
       const formData = new FormData();
-      formData.append("type", postType.toString());
-      if (postType == FILE_TYPE.IMAGE) {
-        formData.append("files", imageFile);
-        formData.append("files", imageFileCompressed ?? nullFile);
-      } else {
-        formData.append("files", videoFile);
-        formData.append("files", videoFileCompressed ?? nullFile);
-      }
+
+      formData.append("types", files.map((file) => {
+        return file.type ? file.type : ""
+      }).join(","))
+      files.forEach((file) => {
+        formData.append("files", file.file);
+        formData.append("files", file.fileCompressed);
+      });
 
       if (user.id) formData.append("authorId", user.id.toString());
       else formData.append("authorId", "");
@@ -139,11 +133,7 @@ const usePost = () => {
 
   const updatePost = async (
     id: number | null,
-    postType: FILE_TYPE,
-    imageFile: File | null,
-    imageFileCompressed: File | null,
-    videoFile: File | null,
-    videoFileCompressed: File | null,
+    files: Array<{ id: number, type: FILE_TYPE | null; file: File | null; fileCompressed: File | null }>,
     title: string,
     content: string
   ): Promise<IPost | null> => {
@@ -156,14 +146,18 @@ const usePost = () => {
       const formData = new FormData();
       if (id) formData.append("id", id.toString());
       else formData.append("id", "");
-      formData.append("type", postType.toString());
-      if (postType == FILE_TYPE.IMAGE) {
-        formData.append("files", imageFile ?? nullFile);
-        formData.append("files", imageFileCompressed ?? nullFile);
-      } else {
-        formData.append("files", videoFile ?? nullFile);
-        formData.append("files", videoFileCompressed ?? nullFile);
-      }
+
+      formData.append("ids", files.map((file) => { return file.id ? file.id.toString() : "" }).join(","))
+      formData.append("types", files.map((file) => {
+        return file.type ? file.type : ""
+      }).join(","))
+
+
+      files.forEach((file) => {
+        formData.append("files", file.file ?? nullFile);
+        formData.append("files", file.fileCompressed ?? nullFile);
+      });
+
       if (user.id) formData.append("authorId", user.id.toString());
       else formData.append("authorId", "");
       formData.append("title", title.toString());

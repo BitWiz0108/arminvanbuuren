@@ -9,12 +9,13 @@ import {
   PLACEHOLDER_IMAGE,
   UPLOAD_TYPE,
 } from "@/libs/constants";
-import { duration } from "moment";
+import RadioBoxGroup from "../RadioBoxGroup";
 
 type Props = {
   id: string;
   label: string;
   fileType: FILE_TYPE | null; // null means music
+  setFileType: Function;
   file: File | string | null;
   setFile: Function;
   uploaded?: string | null;
@@ -27,10 +28,16 @@ const ACCEPT_VIDEO = "video/*";
 const ACCEPT_AUDIO = "audio/*";
 const ACCEPT_IMAGE = "image/*";
 
-const ButtonUpload = ({
+const radioBoxOptions = [
+  { label: "Image", value: FILE_TYPE.IMAGE },
+  { label: "Video", value: FILE_TYPE.VIDEO },
+];
+
+const ButtonUploadWithFileType = ({
   id,
   label,
   fileType,
+  setFileType,
   file,
   setFile,
   setDuration,
@@ -109,6 +116,14 @@ const ButtonUpload = ({
       <label htmlFor={id} className="w-full text-sm">
         {label}
       </label>
+      <RadioBoxGroup
+        options={radioBoxOptions}
+        name={`myRadioGroup_${id}`}
+        selectedValue={fileType!}
+        onChange={(value) =>
+          setFileType(value as FILE_TYPE)
+        }
+      />
       {uploadType == UPLOAD_TYPE.FILE ? (
         <div className="flex flex-col justify-center items-center space-y-2">
           {preview ? (
@@ -201,9 +216,9 @@ const ButtonUpload = ({
             accept={accept}
           />
 
-          <div className="w-full flex">
+          <div className="w-full flex items-center justify-center">
             <div
-              className="bg-white p-2 flex-grow overflow-hidden text-black text-md outline-none readonly font-bold cursor-pointer transition-all duration-300 rounded-tl-md rounded-bl-md truncate"
+              className=" w-[220px] min-w-[220px] max-w-[220px] bg-white p-2 flex-grow overflow-hidden text-black text-md outline-none readonly font-bold cursor-pointer transition-all duration-300 rounded-tl-md rounded-bl-md truncate"
               onClick={() => onSelectFile()}
             >
               <span className="w-full truncate">
@@ -235,4 +250,4 @@ const ButtonUpload = ({
   );
 };
 
-export default ButtonUpload;
+export default ButtonUploadWithFileType;

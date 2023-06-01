@@ -142,7 +142,14 @@ const MusicTable = ({
             </div>
             <div className="w-[50%] lg:w-[30%] truncate">{value.title}</div>
             <div className="w-[15%] hidden lg:flex truncate">
-              {value.album?.name}
+              {value.albums.map((data, index) => {
+                var albumShow = "";
+                albumShow += data.name;
+                if (index < value.albums.length - 1) {
+                  albumShow += ", ";
+                }
+                return albumShow;
+              })}
             </div>
             <div className="w-[15%] hidden lg:flex truncate">
               {value.singer?.firstName} {value.singer?.lastName}

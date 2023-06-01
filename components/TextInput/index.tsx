@@ -10,6 +10,7 @@ type Props = {
   icon?: any;
   sname?: string;
   id?: string;
+  readOnly?: boolean;
 };
 
 const Input = ({
@@ -21,6 +22,7 @@ const Input = ({
   sname,
   id,
   icon = null,
+  readOnly = false,
 }: Props) => {
   const [focus, setFocus] = useState<boolean>(false);
   const [dirty, setDirty] = useState<boolean>(false);
@@ -43,14 +45,27 @@ const Input = ({
         )}
       >
         {icon}
-        <input
-          type={type}
-          id={id}
-          className="flex w-auto flex-grow text-primary text-sm placeholder-secondary bg-transparent outline-none border-none focus:outline-none focus:border-none"
-          value={value}
-          placeholder={placeholder}
-          onChange={(e) => onChange(e.target.value)}
-        />
+        {readOnly == true ? (
+          <input
+            readOnly
+            type={type}
+            id={id}
+            className="flex w-auto flex-grow text-secondary text-sm placeholder-secondary bg-transparent outline-none border-none focus:outline-none focus:border-none"
+            value={value}
+            placeholder={placeholder}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        ) : (
+          <input
+            type={type}
+            id={id}
+            className="flex w-auto flex-grow text-primary text-sm placeholder-secondary bg-transparent outline-none border-none focus:outline-none focus:border-none"
+            value={value}
+            placeholder={placeholder}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        )}
+
         {icon && <div className="w-5"></div>}
       </div>
     </div>

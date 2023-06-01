@@ -98,7 +98,7 @@ const Sidebar = ({ visible, setVisible }: Props) => {
             active={router.pathname == "/album"}
             collapsed={isSidebarCollapsed}
             icon={<Album width={24} height={24} />}
-            label="Album"
+            label="Albums"
             onClick={() => goToLink("/album")}
           />
           <ButtonSidebar
@@ -112,14 +112,14 @@ const Sidebar = ({ visible, setVisible }: Props) => {
             active={router.pathname == "/category"}
             collapsed={isSidebarCollapsed}
             icon={<Album width={24} height={24} />}
-            label="Category"
+            label="Categories"
             onClick={() => goToLink("/category")}
           />
           <ButtonSidebar
             active={router.pathname == "/live-stream"}
             collapsed={isSidebarCollapsed}
             icon={<Mic width={24} height={24} />}
-            label="Livestream"
+            label="Livestreams"
             onClick={() => goToLink("/live-stream")}
           />
           <ButtonSidebar

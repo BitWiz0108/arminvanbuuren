@@ -34,9 +34,13 @@ const DateInput = ({
         <DatePicker
           className="w-full flex text-primary text-sm placeholder-secondary bg-transparent outline-none border-none focus:outline-none focus:border-none"
           selected={value ? moment(value).toDate() : new Date()}
-          onChange={(date) => setValue(moment(date).format(DATETIME_FORMAT))}
+          onChange={(date) => setValue(date)}
           dateFormat={US_DATETIME_FORMAT}
           placeholderText={placeholder}
+          showTimeSelect
+          timeFormat="HH:mm"
+          timeIntervals={15}
+          timeCaption="Time"
         />
       </div>
     </div>

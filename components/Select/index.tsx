@@ -24,7 +24,7 @@ const Select = ({
         id={label}
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="w-full h-[56px] flex flex-row bg-[#24292d] justify-start items-center py-4 font-semibold px-4 border-[0.0625rem] border-[#3e454d] rounded-lg outline-none focus:outline-none transition-all duration-300"
+        className="w-full flex flex-row bg-[#24292d] justify-start items-center py-4 font-semibold px-4 border-[0.0625rem] border-[#3e454d] rounded-lg outline-none focus:outline-none transition-all duration-300"
       >
         <option value={defaultValue}>{defaultLabel}</option>
         {options.map((option, index) => {

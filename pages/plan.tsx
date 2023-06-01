@@ -177,7 +177,6 @@ export default function Plan() {
             setIsEditing(true);
             const index = plans.findIndex((plan) => plan.id == id);
             if (index >= 0) {
-              console.log("!!!!", plans[index]);
               setName(plans[index].name);
               setDescription(plans[index].description);
               setImageFile(null);
