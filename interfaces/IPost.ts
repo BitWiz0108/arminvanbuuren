@@ -1,16 +1,19 @@
-import { DEFAULT_COVER_IMAGE, FILE_TYPE } from "@/libs/constants";
+import { FILE_TYPE } from "@/libs/constants";
 
 import { IReply } from "@/interfaces/IReply";
+
+export interface IContentBody {
+  id?: number | null;
+  type: FILE_TYPE | null;
+  file: File | string | null;
+  fileCompressed: File | string | null;
+}
 
 export interface IPost {
   id: number | null;
   author: any;
   title: string;
-  type: FILE_TYPE;
-  image: string;
-  imageCompressed: string;
-  video: string;
-  videoCompressed: string;
+  files: Array<IContentBody>;
   content: string;
   createdAt: string;
   isFavorite: boolean;
@@ -22,11 +25,7 @@ export const DEFAULT_POST = {
   id: null,
   author: null,
   title: "",
-  type: FILE_TYPE.IMAGE,
-  image: DEFAULT_COVER_IMAGE,
-  imageCompressed: DEFAULT_COVER_IMAGE,
-  video: "",
-  videoCompressed: "",
+  files: [],
   content: "",
   createdAt: "",
   isFavorite: false,

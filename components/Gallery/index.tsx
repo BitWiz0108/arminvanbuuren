@@ -94,15 +94,6 @@ const GalleryView = () => {
           size: IMAGE_SIZE,
           description: string
         ) => {
-          console.log(
-            galleryImageType,
-            imageFile,
-            imageFileCompressed,
-            videoFile,
-            videoFileCompressed,
-            size,
-            description
-          );
           addImage(
             galleryImageType,
             imageFile,

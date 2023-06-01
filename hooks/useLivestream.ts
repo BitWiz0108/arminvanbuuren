@@ -6,9 +6,8 @@ import { useAuthValues } from "@/contexts/contextAuth";
 import {
   API_BASE_URL,
   API_VERSION,
-  DATE_FORMAT,
+  RELEASEDATETIME_FORMAT,
   UPLOAD_TYPE,
-  US_DATETIME_FORMAT,
 } from "@/libs/constants";
 
 import { IStream, IStreamQueryParam } from "@/interfaces/IStream";
@@ -149,7 +148,7 @@ const useLivestream = () => {
       }
       formData.append(
         "releaseDate",
-        moment(releaseDate).format(US_DATETIME_FORMAT).toString()
+        moment(releaseDate).format(RELEASEDATETIME_FORMAT).toString()
       );
       formData.append("lyrics", lyrics.toString());
       formData.append("description", description.toString());
@@ -254,7 +253,7 @@ const useLivestream = () => {
       }
       formData.append(
         "releaseDate",
-        moment(releaseDate).format(US_DATETIME_FORMAT).toString()
+        moment(releaseDate).format(RELEASEDATETIME_FORMAT).toString()
       );
       formData.append("lyrics", lyrics.toString());
       formData.append("description", description.toString());

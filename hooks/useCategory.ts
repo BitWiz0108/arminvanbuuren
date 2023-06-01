@@ -6,8 +6,7 @@ import { useAuthValues } from "@/contexts/contextAuth";
 import {
   API_BASE_URL,
   API_VERSION,
-  DATE_FORMAT,
-  US_DATETIME_FORMAT,
+  RELEASEDATETIME_FORMAT,
 } from "@/libs/constants";
 
 import { ICategory } from "@/interfaces/ICategory";
@@ -63,7 +62,7 @@ const useCategory = () => {
       formData.append("description", description.toString());
       formData.append(
         "releaseDate",
-        moment(releaseDate).format(US_DATETIME_FORMAT).toString()
+        moment(releaseDate).format(RELEASEDATETIME_FORMAT).toString()
       );
       formData.append("copyright", "");
 
@@ -128,7 +127,7 @@ const useCategory = () => {
       formData.append("description", description.toString());
       formData.append(
         "releaseDate",
-        moment(releaseDate).format(US_DATETIME_FORMAT).toString()
+        moment(releaseDate).format(RELEASEDATETIME_FORMAT).toString()
       );
       formData.append("copyright", "");
 

@@ -10,6 +10,7 @@ export const ASSET_TTL = 3600;
 
 // export const DATETIME_FORMAT = "MMM DD YYYY hh:mm:ss A";
 export const DATETIME_FORMAT = "MMM DD YYYY";
+export const RELEASEDATETIME_FORMAT = "YYYY-MM-DD HH:mm";
 export const US_DATETIME_FORMAT = "MMM dd, yyyy HH:mm";
 export const DATE_FORMAT = "YYYY-MM-DD";
 

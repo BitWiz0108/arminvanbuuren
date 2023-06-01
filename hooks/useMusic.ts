@@ -6,8 +6,7 @@ import { useAuthValues } from "@/contexts/contextAuth";
 import {
   API_BASE_URL,
   API_VERSION,
-  DATE_FORMAT,
-  US_DATETIME_FORMAT,
+  RELEASEDATETIME_FORMAT,
 } from "@/libs/constants";
 
 import { IMusic, IMusicQueryParam } from "@/interfaces/IMusic";
@@ -113,7 +112,7 @@ const useMusic = () => {
       formData.append("description", description.toString());
       formData.append(
         "releaseDate",
-        moment(releaseDate).format(US_DATETIME_FORMAT).toString()
+        moment(releaseDate).format(RELEASEDATETIME_FORMAT).toString()
       );
       const xhr = new XMLHttpRequest();
       xhr.open("POST", `${API_BASE_URL}/${API_VERSION}/admin/music`);
@@ -205,7 +204,7 @@ const useMusic = () => {
       formData.append("description", description.toString());
       formData.append(
         "releaseDate",
-        moment(releaseDate).format(US_DATETIME_FORMAT).toString()
+        moment(releaseDate).format(RELEASEDATETIME_FORMAT).toString()
       );
       const xhr = new XMLHttpRequest();
       xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/music`);
