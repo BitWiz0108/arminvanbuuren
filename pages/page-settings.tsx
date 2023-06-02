@@ -34,10 +34,12 @@ export enum FANCLUB_TAB {
   GALLERY,
   TERMS,
   FACEBOOKSETTINGS,
+  SUBSCRIPTION_MODAL,
 }
 
 export default function PageSettings() {
-  const { isSignedIn } = useAuthValues();
+  const { isSignedIn, user } = useAuthValues();
+
   const {
     isLoading: isArtistWorking,
     loadingProgress: artistLoadingProgress,
@@ -59,6 +61,8 @@ export default function PageSettings() {
     isLoading: isTermsWorking,
     fetchTermsContent,
     updateTermsContent,
+    fetchSubscriptionContent,
+    updateSubscriptionContent,
   } = useTermsOfService();
 
   const [tab, setTab] = useState<FANCLUB_TAB>(FANCLUB_TAB.FAN_HOME);
@@ -142,6 +146,8 @@ export default function PageSettings() {
   const [oauthProvider, setOauthProvider] = useState<OAUTH_PROVIDER>(
     OAUTH_PROVIDER.FACEBOOK
   );
+  const [subscriptionModalDescription, setSubscriptionModalDescription] =
+    useState<string>("");
 
   const fanBackgroundTypeChange = (value: FILE_TYPE) => {
     setBackgroundType(value);
@@ -318,6 +324,30 @@ export default function PageSettings() {
     });
   };
 
+  const fetchSubscriptionModalContentData = () => {
+    fetchSubscriptionContent(user.id).then((data) => {
+      if (data) {
+        setSubscriptionModalDescription(data.content);
+      }
+    });
+  };
+
+  const onSaveSubscriptionModalContentData = () => {
+    if (!subscriptionModalDescription) {
+      toast.warn("Please enter content.");
+      return;
+    }
+
+    updateSubscriptionContent(user.id, subscriptionModalDescription).then(
+      (data) => {
+        if (data) {
+          setSubscriptionModalDescription(data.content);
+          toast.success("Successfully saved!");
+        }
+      }
+    );
+  };
+
   useEffect(() => {
     if (isSignedIn) {
       fetchAdminHomeContentData();
@@ -325,6 +355,7 @@ export default function PageSettings() {
       fetchAboutPageData();
       fetchTermsContentData();
       fetchOAuthContentData();
+      fetchSubscriptionModalContentData();
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -554,6 +585,29 @@ export default function PageSettings() {
     </div>
   );
 
+  const Subscription = (
+    <div className="relative w-full flex flex-col justify-start items-center p-5">
+      <div className="w-full lg:w-2/3 p-5">
+        <div className="w-full flex flex-col p-5 bg-[#2f363e] rounded-lg">
+          <div className="w-full flex flex-col md:flex-row justify-start items-center space-x-0 md:space-x-2">
+            <TextAreaInput
+              id="subscriptioncontent"
+              sname="Subscription Modal Description"
+              placeholder="Enter Subscription Modal Description Text"
+              value={subscriptionModalDescription}
+              setValue={setSubscriptionModalDescription}
+            />
+          </div>
+          <ButtonSettings
+            bgColor="cyan"
+            label="Save"
+            onClick={onSaveSubscriptionModalContentData}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <Layout>
       <div className="relative w-full min-h-screen flex flex-col justify-start items-center overflow-x-hidden overflow-y-auto">
@@ -612,6 +666,17 @@ export default function PageSettings() {
 
           <button
             className={`inline-flex justify-center items-center rounded-tl-md rounded-tr-md px-5 h-11 border-b ${
+              tab == FANCLUB_TAB.SUBSCRIPTION_MODAL
+                ? "border-primary bg-bluePrimary text-primary"
+                : "border-secondary bg-transparent text-secondary hover:bg-background"
+            } transition-all duration-300`}
+            onClick={() => setTab(FANCLUB_TAB.SUBSCRIPTION_MODAL)}
+          >
+            <span className="whitespace-nowrap">Subscription Modal</span>
+          </button>
+
+          <button
+            className={`inline-flex justify-center items-center rounded-tl-md rounded-tr-md px-5 h-11 border-b ${
               tab == FANCLUB_TAB.FACEBOOKSETTINGS
                 ? "border-primary bg-bluePrimary text-primary"
                 : "border-secondary bg-transparent text-secondary hover:bg-background"
@@ -628,6 +693,7 @@ export default function PageSettings() {
         {tab == FANCLUB_TAB.GALLERY && Gallery}
         {tab == FANCLUB_TAB.TERMS && Terms}
         {tab == FANCLUB_TAB.FACEBOOKSETTINGS && Facebook}
+        {tab == FANCLUB_TAB.SUBSCRIPTION_MODAL && Subscription}
       </div>
 
       {(isAboutWorking || isArtistWorking || isTermsWorking) && (
