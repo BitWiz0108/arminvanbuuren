@@ -9,6 +9,7 @@ import Menu from "@/components/Icons/Menu";
 import { useSizeValues } from "@/contexts/contextSize";
 import { useAuthValues } from "@/contexts/contextAuth";
 import { toast } from "react-toastify";
+import useUser from "@/hooks/useUser";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -16,8 +17,10 @@ type LayoutProps = {
 
 const Layout = ({ children }: LayoutProps) => {
   const router = useRouter();
+  const { fetchArtistData } = useUser();
   const { isSignedIn } = useAuthValues();
   const [firstLoading, setFirstLoading] = useState<boolean>(true);
+  const [logoImage, setLogoImage] = useState<string>("");
 
   const {
     width,
@@ -30,6 +33,11 @@ const Layout = ({ children }: LayoutProps) => {
   } = useSizeValues();
 
   useEffect(() => {
+    fetchArtistData().then((data) => {
+      if (data) {
+        setLogoImage(data.logoImage);
+      }
+    });
     const timeout = setTimeout(() => {
       setFirstLoading(false);
     }, 2000);
@@ -70,7 +78,7 @@ const Layout = ({ children }: LayoutProps) => {
         <title>Admin</title>
         <meta name="description" content="Admin Website" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.png" />
+        <link rel="icon" href={logoImage ?? ""} key="favicon" />
       </Head>
 
       <main className="relative w-full min-h-screen flex flex-row justify-start items-start">
