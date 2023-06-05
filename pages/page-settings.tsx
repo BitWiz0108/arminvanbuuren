@@ -33,7 +33,7 @@ export enum FANCLUB_TAB {
   ABOUT,
   GALLERY,
   TERMS,
-  FACEBOOKSETTINGS,
+  OAUTHSETTINGS,
   SUBSCRIPTION_MODAL,
 }
 
@@ -141,8 +141,12 @@ export default function PageSettings() {
   const [termsContent, setTermsContent] = useState<string>(
     DEFAULT_TERMSOFSERVICE.content
   );
-  const [appId, setappId] = useState<string>("");
-  const [appSecret, setappSecret] = useState<string>("");
+  const [facebookAppId, setFacebookAppId] = useState<string>("");
+  const [facebookAppSecret, setFacebookAppSecret] = useState<string>("");
+  const [appleAppId, setAppleAppId] = useState<string>("");
+  const [appleAppSecret, setAppleAppSecret] = useState<string>("");
+  const [googleAppId, setGoogleAppId] = useState<string>("");
+  const [googleAppSecret, setGoogleAppSecret] = useState<string>("");
   const [oauthProvider, setOauthProvider] = useState<OAUTH_PROVIDER>(
     OAUTH_PROVIDER.FACEBOOK
   );
@@ -202,10 +206,14 @@ export default function PageSettings() {
   };
 
   const fetchOAuthContentData = () => {
-    fetchOauthSettings(oauthProvider).then((data) => {
+    fetchOauthSettings().then((data) => {
       if (data) {
-        setappId(data.appId);
-        setappSecret(data.appSecret);
+        setFacebookAppId(data.facebookAppId);
+        setFacebookAppSecret(data.facebookAppSecret);
+        setAppleAppId(data.appleAppId);
+        setAppleAppSecret(data.appleAppSecret);
+        setGoogleAppId(data.googleAppId);
+        setGoogleAppSecret(data.googleAppSecret);
       }
     });
   };
@@ -248,13 +256,79 @@ export default function PageSettings() {
   };
 
   const onSaveFacebookContent = () => {
-    if (!appId || !appSecret) {
+    if (!facebookAppId || !facebookAppSecret) {
       toast.warn("Please input facebook App Id and App Secret.");
       return;
     }
 
-    updateOauthSettings(oauthProvider, appId, appSecret).then((data) => {
+    updateOauthSettings(
+      OAUTH_PROVIDER.FACEBOOK,
+      facebookAppId,
+      facebookAppSecret
+    ).then((data) => {
       if (data) {
+        if (data.provider == OAUTH_PROVIDER.FACEBOOK) {
+          setFacebookAppId(data.appId);
+          setFacebookAppSecret(data.appSecret);
+        } else if (data.provider == OAUTH_PROVIDER.APPLE) {
+          setAppleAppId(data.appId);
+          setFacebookAppSecret(data.appSecret);
+        } else if (data.provider == OAUTH_PROVIDER.GOOGLE) {
+          setGoogleAppId(data.appId);
+          setGoogleAppSecret(data.appSecret);
+        }
+        toast.success("Successfully saved!");
+      }
+    });
+  };
+
+  const onSaveAppleContent = () => {
+    if (!appleAppId || !appleAppSecret) {
+      toast.warn("Please input Apple App Id and App Secret.");
+      return;
+    }
+
+    updateOauthSettings(OAUTH_PROVIDER.APPLE, appleAppId, appleAppSecret).then(
+      (data) => {
+        if (data) {
+          if (data.provider == OAUTH_PROVIDER.FACEBOOK) {
+            setFacebookAppId(data.appId);
+            setFacebookAppSecret(data.appSecret);
+          } else if (data.provider == OAUTH_PROVIDER.APPLE) {
+            setAppleAppId(data.appId);
+            setAppleAppSecret(data.appSecret);
+          } else if (data.provider == OAUTH_PROVIDER.GOOGLE) {
+            setGoogleAppId(data.appId);
+            setGoogleAppSecret(data.appSecret);
+          }
+          toast.success("Successfully saved!");
+        }
+      }
+    );
+  };
+
+  const onSaveGoogleContent = () => {
+    if (!googleAppId || !googleAppSecret) {
+      toast.warn("Please input Google App Id and App Secret.");
+      return;
+    }
+
+    updateOauthSettings(
+      OAUTH_PROVIDER.GOOGLE,
+      googleAppId,
+      googleAppSecret
+    ).then((data) => {
+      if (data) {
+        if (data.provider == OAUTH_PROVIDER.FACEBOOK) {
+          setFacebookAppId(data.appId);
+          setFacebookAppSecret(data.appSecret);
+        } else if (data.provider == OAUTH_PROVIDER.APPLE) {
+          setAppleAppId(data.appId);
+          setFacebookAppSecret(data.appSecret);
+        } else if (data.provider == OAUTH_PROVIDER.GOOGLE) {
+          setGoogleAppId(data.appId);
+          setGoogleAppSecret(data.appSecret);
+        }
         toast.success("Successfully saved!");
       }
     });
@@ -554,32 +628,97 @@ export default function PageSettings() {
     </div>
   );
 
-  const Facebook = (
+  const OAuth = (
     <div className="relative w-full flex flex-col justify-start items-center p-5">
       <div className="w-full lg:w-2/3 p-5 ">
         <div className="w-full flex flex-col p-5 bg-[#2f363e] rounded-lg">
+          <h3 className="text-2xl xl:text-3xl font-semibold text-gray-50">
+            Facebook
+          </h3>
           <TextInput
             sname="Facebook App Id"
             label=""
             placeholder="Facebook App Id"
             type="text"
-            value={appId}
-            setValue={setappId}
+            value={facebookAppId}
+            setValue={setFacebookAppId}
           />
           <TextInput
             sname="Facebook App Secret"
             label=""
             placeholder="Facebook App Secret"
             type="text"
-            value={appSecret}
-            setValue={setappSecret}
+            value={facebookAppSecret}
+            setValue={setFacebookAppSecret}
           />
           <br />
-          <ButtonSettings
-            bgColor="cyan"
-            label="Save"
-            onClick={onSaveFacebookContent}
+          <div className="w-full">
+            <ButtonSettings
+              bgColor="cyan"
+              label="Save"
+              onClick={onSaveFacebookContent}
+            />
+          </div>
+        </div>
+
+        <div className="w-full flex flex-col p-5 bg-[#2f363e] rounded-lg">
+          <h3 className="text-2xl xl:text-3xl font-semibold text-gray-50">
+            Apple
+          </h3>
+          <TextInput
+            sname="Apple App Id"
+            label=""
+            placeholder="Apple App Id"
+            type="text"
+            value={appleAppId}
+            setValue={setAppleAppId}
           />
+          <TextInput
+            sname="Apple App Secret"
+            label=""
+            placeholder="Apple App Secret"
+            type="text"
+            value={appleAppSecret}
+            setValue={setAppleAppSecret}
+          />
+          <br />
+          <div className="w-full">
+            <ButtonSettings
+              bgColor="cyan"
+              label="Save"
+              onClick={onSaveAppleContent}
+            />
+          </div>
+        </div>
+
+        <div className="w-full flex flex-col p-5 bg-[#2f363e] rounded-lg">
+          <h3 className="text-2xl xl:text-3xl font-semibold text-gray-50">
+            Google
+          </h3>
+          <TextInput
+            sname="Google App Id"
+            label=""
+            placeholder="Google App Id"
+            type="text"
+            value={googleAppId}
+            setValue={setGoogleAppId}
+          />
+          <TextInput
+            sname="Google App Secret"
+            label=""
+            placeholder="Google App Secret"
+            type="text"
+            value={googleAppSecret}
+            setValue={setGoogleAppSecret}
+          />
+          <br />
+          <div className="w-full">
+            <ButtonSettings
+              bgColor="cyan"
+              label="Save"
+              onClick={onSaveGoogleContent}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -677,13 +816,13 @@ export default function PageSettings() {
 
           <button
             className={`inline-flex justify-center items-center rounded-tl-md rounded-tr-md px-5 h-11 border-b ${
-              tab == FANCLUB_TAB.FACEBOOKSETTINGS
+              tab == FANCLUB_TAB.OAUTHSETTINGS
                 ? "border-primary bg-bluePrimary text-primary"
                 : "border-secondary bg-transparent text-secondary hover:bg-background"
             } transition-all duration-300`}
-            onClick={() => setTab(FANCLUB_TAB.FACEBOOKSETTINGS)}
+            onClick={() => setTab(FANCLUB_TAB.OAUTHSETTINGS)}
           >
-            <span className="whitespace-nowrap">Facebook</span>
+            <span className="whitespace-nowrap">OAuth</span>
           </button>
         </div>
 
@@ -692,7 +831,7 @@ export default function PageSettings() {
         {tab == FANCLUB_TAB.ABOUT && About}
         {tab == FANCLUB_TAB.GALLERY && Gallery}
         {tab == FANCLUB_TAB.TERMS && Terms}
-        {tab == FANCLUB_TAB.FACEBOOKSETTINGS && Facebook}
+        {tab == FANCLUB_TAB.OAUTHSETTINGS && OAuth}
         {tab == FANCLUB_TAB.SUBSCRIPTION_MODAL && Subscription}
       </div>
 

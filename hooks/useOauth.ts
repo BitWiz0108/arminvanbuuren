@@ -5,17 +5,17 @@ import { useAuthValues } from "@/contexts/contextAuth";
 
 import { API_BASE_URL, API_VERSION, OAUTH_PROVIDER } from "@/libs/constants";
 
-import { IOauth } from "@/interfaces/IOauth";
+import { IOauth, UIOauth } from "@/interfaces/IOauth";
 
 const useOauth = () => {
   const { accessToken } = useAuthValues();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const fetchOauthSettings = async (oauthProvider: OAUTH_PROVIDER) => {
+  const fetchOauthSettings = async () => {
     setIsLoading(true);
 
     const response = await fetch(
-      `${API_BASE_URL}/${API_VERSION}/admin/oauth?provider=${oauthProvider}`,
+      `${API_BASE_URL}/${API_VERSION}/admin/oauth`,
       {
         method: "GET",
         headers: {
@@ -54,7 +54,7 @@ const useOauth = () => {
 
     if (response.ok) {
       setIsLoading(false);
-      const data = (await response.json()) as IOauth;
+      const data = (await response.json()) as UIOauth;
       return data;
     } else {
       if (response.status == 500) {
