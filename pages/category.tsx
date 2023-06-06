@@ -107,7 +107,7 @@ export default function Category() {
 
   const tableView = (
     <div className="w-full">
-      <div className="w-full flex justify-end items-center p-5">
+      <div className="w-full flex justify-start items-center p-5">
         <div className="w-40">
           <ButtonSettings
             label="Add"
