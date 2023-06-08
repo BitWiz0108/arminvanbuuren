@@ -1,3 +1,4 @@
+export const CHURCH_APP = Number(process.env.NEXT_PUBLIC_CHURCH_APP!) == 1;
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
 export const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION!;
 export const AWS_ACCESS_KEY_ID = process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID!;
@@ -118,7 +119,7 @@ export enum OAUTH_PROVIDER {
   LINKEDIN = "LINKEDIN",
   YOUTUBE = "YOUTUBE",
   APPLE = "APPLE",
-  GOOGLE = "GOOGLE"
+  GOOGLE = "GOOGLE",
 }
 
 export enum UPLOAD_TYPE {

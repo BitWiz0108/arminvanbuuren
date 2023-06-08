@@ -18,13 +18,13 @@ import Emailtemplate from "@/components/Icons/EmailTemplate";
 import Home from "@/components/Icons/Home";
 import User from "@/components/Icons/User";
 import Subscription from "@/components/Icons/Subscription";
-import Info from "@/components/Icons/Info";
+import HeartBalloon from "@/components/Icons/HeartBalloon";
 import Payment from "@/components/Icons/Payment";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 import { useSizeValues } from "@/contexts/contextSize";
 
-import { SIDEBARWIDTH_SM } from "@/libs/constants";
+import { CHURCH_APP, SIDEBARWIDTH_SM } from "@/libs/constants";
 import Setting from "../Icons/Setting";
 
 type Props = {
@@ -129,6 +129,15 @@ const Sidebar = ({ visible, setVisible }: Props) => {
             label="Fan Club"
             onClick={() => goToLink("/fan-club")}
           />
+          {CHURCH_APP && (
+            <ButtonSidebar
+              active={router.pathname == "/prayer-request"}
+              collapsed={isSidebarCollapsed}
+              icon={<HeartBalloon width={24} height={24} />}
+              label="Prayer Request"
+              onClick={() => goToLink("/prayer-request")}
+            />
+          )}
           <ButtonSidebar
             active={router.pathname == "/user"}
             collapsed={isSidebarCollapsed}

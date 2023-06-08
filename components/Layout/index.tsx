@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import { toast } from "react-toastify";
 
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
@@ -8,8 +9,10 @@ import Menu from "@/components/Icons/Menu";
 
 import { useSizeValues } from "@/contexts/contextSize";
 import { useAuthValues } from "@/contexts/contextAuth";
-import { toast } from "react-toastify";
+
 import useUser from "@/hooks/useUser";
+
+import { CHURCH_APP, DEFAULT_LOGO_IMAGE } from "@/libs/constants";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -69,8 +72,12 @@ const Layout = ({ children }: LayoutProps) => {
   useEffect(() => {
     setIsSidebarVisible(width >= 768);
 
+    if (!CHURCH_APP && router.pathname.includes("prayer-request")) {
+      router.push("/home");
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [width]);
+  }, [width, router.pathname]);
 
   return (
     <>
@@ -78,7 +85,7 @@ const Layout = ({ children }: LayoutProps) => {
         <title>Admin</title>
         <meta name="description" content="Admin Website" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href={logoImage ?? ""} key="favicon" />
+        <link rel="icon" href={logoImage ?? DEFAULT_LOGO_IMAGE} key="favicon" />
       </Head>
 
       <main className="relative w-full min-h-screen flex flex-row justify-start items-start">
