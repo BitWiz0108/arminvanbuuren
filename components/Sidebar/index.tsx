@@ -20,12 +20,12 @@ import User from "@/components/Icons/User";
 import Subscription from "@/components/Icons/Subscription";
 import HeartBalloon from "@/components/Icons/HeartBalloon";
 import Payment from "@/components/Icons/Payment";
+import Setting from "@/components/Icons/Setting";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 import { useSizeValues } from "@/contexts/contextSize";
 
-import { CHURCH_APP, SIDEBARWIDTH_SM } from "@/libs/constants";
-import Setting from "../Icons/Setting";
+import { SYSTEM_TYPE, SIDEBARWIDTH_SM, APP_TYPE } from "@/libs/constants";
 
 type Props = {
   visible: boolean;
@@ -102,11 +102,13 @@ const Sidebar = ({ visible, setVisible }: Props) => {
             onClick={() => goToLink("/album")}
           />
           <ButtonSidebar
-            active={router.pathname == "/music"}
+            active={router.pathname == "/music" || router.pathname == "/audio"}
             collapsed={isSidebarCollapsed}
             icon={<Music width={26} height={26} color="white" />}
-            label="Music"
-            onClick={() => goToLink("/music")}
+            label={SYSTEM_TYPE == APP_TYPE.CHURCH ? "Audio" : "Music"}
+            onClick={() =>
+              goToLink(SYSTEM_TYPE == APP_TYPE.CHURCH ? "/audio" : "/music")
+            }
           />
           <ButtonSidebar
             active={router.pathname == "/category"}
@@ -123,19 +125,25 @@ const Sidebar = ({ visible, setVisible }: Props) => {
             onClick={() => goToLink("/live-stream")}
           />
           <ButtonSidebar
-            active={router.pathname == "/fan-club"}
+            active={
+              router.pathname == "/fan-club" || router.pathname == "/community"
+            }
             collapsed={isSidebarCollapsed}
             icon={<ThumbUp width={24} height={24} />}
-            label="Fan Club"
-            onClick={() => goToLink("/fan-club")}
+            label={SYSTEM_TYPE == APP_TYPE.CHURCH ? "Community" : "Fan Club"}
+            onClick={() =>
+              goToLink(
+                SYSTEM_TYPE == APP_TYPE.CHURCH ? "/community" : "/fan-club"
+              )
+            }
           />
-          {CHURCH_APP && (
+          {SYSTEM_TYPE != APP_TYPE.TYPICAL && (
             <ButtonSidebar
-              active={router.pathname == "/prayer-request"}
+              active={router.pathname == "/prayer-requests"}
               collapsed={isSidebarCollapsed}
               icon={<HeartBalloon width={24} height={24} />}
               label="Prayer Request"
-              onClick={() => goToLink("/prayer-request")}
+              onClick={() => goToLink("/prayer-requests")}
             />
           )}
           <ButtonSidebar

@@ -1,4 +1,4 @@
-export const CHURCH_APP = Number(process.env.NEXT_PUBLIC_CHURCH_APP!) == 1;
+export const SYSTEM_TYPE = process.env.NEXT_PUBLIC_APP_TYPE! as APP_TYPE;
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
 export const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION!;
 export const AWS_ACCESS_KEY_ID = process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID!;
@@ -9,7 +9,6 @@ export const AWS_BUCKET_NAME = process.env.NEXT_PUBLIC_AWS_BUCKET_NAME!;
 
 export const ASSET_TTL = 3600;
 
-// export const DATETIME_FORMAT = "MMM DD YYYY hh:mm:ss A";
 export const DATETIME_FORMAT = "MMM DD YYYY";
 export const RELEASEDATETIME_FORMAT = "YYYY-MM-DD HH:mm";
 export const US_DATETIME_FORMAT = "MMM dd, yyyy HH:mm";
@@ -54,6 +53,12 @@ export const SINGLE_RESPONSIVENESS = {
 //##########################################################
 //################### System configuration #################
 //##########################################################
+export enum APP_TYPE {
+  TYPICAL = "typical",
+  CHRISTIAN = "christian",
+  CHURCH = "church",
+}
+
 export enum GENDER {
   NONE = "NONE",
   MALE = "MALE",
