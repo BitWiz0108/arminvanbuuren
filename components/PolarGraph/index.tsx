@@ -30,7 +30,7 @@ const PolarGraph = ({
   );
 
   const data = {
-    labels: ["Total Income", "Subscriptions", "Donations"],
+    labels: ["Total Income", "Donations", "Subscriptions"],
     datasets: [
       {
         label: "Amount",

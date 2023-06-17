@@ -54,7 +54,7 @@ const Input = ({
       {icon}
       <input
         type={type}
-        className="flex w-auto flex-grow text-primary text-center text-xl placeholder-secondary bg-transparent outline-none border-none focus:outline-none focus:border-none"
+        className="flex w-auto flex-grow text-primary text-center text-xl placeholder-primary bg-transparent outline-none border-none focus:outline-none focus:border-none"
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}

@@ -4,7 +4,7 @@ import moment from "moment";
 import DateRangePicker from "@wojtekmaj/react-daterange-picker";
 
 import Layout from "@/components/Layout";
-import LineGraph from "@/components/LineGraph"; 
+import LineGraph from "@/components/LineGraph";
 import PieGraph from "@/components/PieGraph";
 import BarGraph from "@/components/BarGraph";
 import GraphUp from "@/components/Icons/GraphUp";
@@ -51,7 +51,7 @@ export default function Home() {
     moment("2023-04-30").format(DATE_FORMAT)
   );
   const [bestSellingType, setBestSellingType] = useState<BEST_SELLING_TYPE>(
-    BEST_SELLING_TYPE.DAILY
+    BEST_SELLING_TYPE.WEEKLY
   );
   const [value, onChange] = useState<any>([new Date(), new Date()]);
   const [bestSellingLabel, setBestSellingLabel] = useState<any>();
@@ -179,6 +179,7 @@ export default function Home() {
                   onChange={(e) => {
                     setBestSellingType(e.target.value as BEST_SELLING_TYPE);
                   }}
+                  value={bestSellingType}
                   className=" h-4 bg-[#2f363e]  border-[#2f363e] rounded-lg outline-none focus:outline-none transition-all duration-300"
                 >
                   <option value={BEST_SELLING_TYPE.DAILY}>DAILY</option>
