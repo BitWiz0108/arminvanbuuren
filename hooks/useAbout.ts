@@ -15,16 +15,13 @@ const useAbout = () => {
   const fetchAboutContent = async () => {
     setIsLoading(true);
 
-    const response = await fetch(
-      `${API_BASE_URL}/${API_VERSION}/admin/about/images`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/${API_VERSION}/admin/about`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
     if (response.ok) {
       setIsLoading(false);
       const data = await response.json();
@@ -91,7 +88,61 @@ const useAbout = () => {
     });
   };
 
-  return { isLoading, loadingProgress, fetchAboutContent, updateAboutContent };
+  const fetchConnectContent = async () => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `${API_BASE_URL}/${API_VERSION}/admin/about/connect`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    if (response.ok) {
+      setIsLoading(false);
+      const data = await response.json();
+      return data;
+    } else {
+      setIsLoading(false);
+      return null;
+    }
+  };
+
+  const updateConnectContent = async (content: string) => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `${API_BASE_URL}/${API_VERSION}/admin/about/connect`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ content }),
+      }
+    );
+    if (response.ok) {
+      setIsLoading(false);
+      const data = await response.json();
+      return data;
+    } else {
+      setIsLoading(false);
+      return null;
+    }
+  };
+
+  return {
+    isLoading,
+    loadingProgress,
+    fetchAboutContent,
+    updateAboutContent,
+    fetchConnectContent,
+    updateConnectContent,
+  };
 };
 
 export default useAbout;

@@ -4,7 +4,12 @@ import { toast } from "react-toastify";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 
-import { FILE_TYPE, OAUTH_PROVIDER, PLACEHOLDER_IMAGE } from "@/libs/constants";
+import {
+  FILE_TYPE,
+  OAUTH_PROVIDER,
+  PLACEHOLDER_IMAGE,
+  UPLOAD_TYPE,
+} from "@/libs/constants";
 
 import Layout from "@/components/Layout";
 import ButtonSettings from "@/components/ButtonSettings";
@@ -56,6 +61,7 @@ export default function PageSettings() {
     loadingProgress: aboutLoadingProgress,
     fetchAboutContent,
     updateAboutContent,
+    updateConnectContent,
   } = useAbout();
   const {
     isLoading: isTermsWorking,
@@ -78,15 +84,21 @@ export default function PageSettings() {
   const [backgroundVideoFile, setBackgroundVideoFile] = useState<File | null>(
     null
   );
+  const [backgroundVideoFileUrl, setBackgroundVideoFileUrl] =
+    useState<string>("");
   const [backgroundVideoFileUploaded, setBackgroundVideoFileUploaded] =
     useState<string>("");
+
   const [backgroundVideoFileCompressed, setBackgroundVideoFileCompressed] =
     useState<File | null>(null);
+  const [
+    backgroundvideoFileCompressedUrl,
+    setBackgroundVideoFileCompressedUrl,
+  ] = useState<string>("");
   const [
     backgroundVideoFileCompressedUploaded,
     setBackgroundVideoFileCompressedUploaded,
   ] = useState<string>("");
-
   const [backgroundImageFile, setBackgroundImageFile] = useState<File | null>(
     null
   );
@@ -97,6 +109,42 @@ export default function PageSettings() {
   const [
     backgroundImageFileCompressedUploaded,
     setBackgroundImageFileCompressedUploaded,
+  ] = useState<string>("");
+
+  const [signInBackgroundVideoFile, setSignInBackgroundVideoFile] =
+    useState<File | null>(null);
+  const [signInBackgroundVideoFileUrl, setSignInBackgroundVideoFileUrl] =
+    useState<string>("");
+  const [
+    signInBackgroundVideoFileUploaded,
+    setSignInBackgroundVideoFileUploaded,
+  ] = useState<string>("");
+
+  const [
+    signInBackgroundVideoFileCompressed,
+    setSignInBackgroundVideoFileCompressed,
+  ] = useState<File | null>(null);
+  const [
+    signInBackgroundVideoFileCompressedUrl,
+    setSignInBackgroundVideoFileCompressedUrl,
+  ] = useState<string>("");
+  const [
+    signInBackgroundVideoFileCompressedUploaded,
+    setSignInBackgroundVideoFileCompressedUploaded,
+  ] = useState<string>("");
+  const [signInBackgroundImageFile, setSignInBackgroundImageFile] =
+    useState<File | null>(null);
+  const [
+    signInBackgroundImageFileUploaded,
+    setSignInBackgroundImageFileUploaded,
+  ] = useState<string>("");
+  const [
+    signInBackgroundImageFileCompressed,
+    setSignInBackgroundImageFileCompressed,
+  ] = useState<File | null>(null);
+  const [
+    signInBackgroundImageFileCompressedUploaded,
+    setSignInBackgroundImageFileCompressedUploaded,
   ] = useState<string>("");
 
   const [signInDescription, setSignInDescription] = useState<string>("");
@@ -156,10 +204,11 @@ export default function PageSettings() {
   const fanBackgroundTypeChange = (value: FILE_TYPE) => {
     setBackgroundType(value);
   };
-
   const adminBackgroundTypeChange = (value: FILE_TYPE) => {
     setAdminBackgroundType(value);
   };
+  const [connectContent, setConnectContent] = useState<string>("");
+  const [uploadType, setUploadType] = useState<UPLOAD_TYPE>(UPLOAD_TYPE.FILE);
 
   const fanRadioBoxOptions = [
     { label: "Image", value: FILE_TYPE.IMAGE },
@@ -170,6 +219,15 @@ export default function PageSettings() {
     { label: "Image", value: FILE_TYPE.IMAGE },
     { label: "Video", value: FILE_TYPE.VIDEO },
   ];
+
+  const UploadType = [
+    { label: "File", value: UPLOAD_TYPE.FILE },
+    { label: "URL", value: UPLOAD_TYPE.URL },
+  ];
+
+  const handlePostOptionChange = (value: UPLOAD_TYPE) => {
+    setUploadType(value);
+  };
 
   const fetchHomeContentData = () => {
     fetchHomeContent().then((data) => {
@@ -182,6 +240,24 @@ export default function PageSettings() {
         setBackgroundVideoFileUploaded(data.backgroundVideo);
         setBackgroundVideoFileCompressedUploaded(
           data.backgroundVideoCompressed
+        );
+        setBackgroundVideoFileUrl(data.backgroundVideo);
+        setBackgroundVideoFileCompressedUrl(data.backgroundVideoCompressed);
+        setBackgroundImageFileUploaded(data.backgroundImage);
+        setAdminBackgroundImageFileCompressedUploaded(
+          data.backgroundImageCompressed
+        );
+        setSignInBackgroundVideoFileUploaded(data.signInBackgroundVideo);
+        setSignInBackgroundVideoFileCompressedUploaded(
+          data.signInBackgroundVideoCompressed
+        );
+        setSignInBackgroundVideoFileUrl(data.signInBackgroundVideo);
+        setSignInBackgroundVideoFileCompressedUrl(
+          data.signInBackgroundVideoCompressed
+        );
+        setSignInBackgroundImageFileUploaded(data.signInBackgroundImage);
+        setSignInBackgroundImageFileCompressedUploaded(
+          data.signInBackgroundImageCompressed
         );
         setHomePageDescription(data.homePageDescription);
         setSignInDescription(data.signInDescription);
@@ -223,6 +299,7 @@ export default function PageSettings() {
       if (data) {
         setCoverImage1Uploaded(data.coverImage1 ?? PLACEHOLDER_IMAGE);
         setCoverImage2Uploaded(data.coverImage2 ?? PLACEHOLDER_IMAGE);
+        setConnectContent(data.content);
       }
     });
   };
@@ -242,10 +319,23 @@ export default function PageSettings() {
 
     updateHomeContent(
       backgroundType,
-      backgroundVideoFile,
-      backgroundVideoFileCompressed,
+      uploadType,
+      uploadType == UPLOAD_TYPE.FILE
+        ? backgroundVideoFile
+        : backgroundVideoFileUrl,
+      uploadType == UPLOAD_TYPE.FILE
+        ? backgroundVideoFileCompressed
+        : backgroundvideoFileCompressedUrl,
       backgroundImageFile,
       backgroundImageFileCompressed,
+      uploadType == UPLOAD_TYPE.FILE
+        ? signInBackgroundVideoFile
+        : signInBackgroundVideoFileUrl,
+      uploadType == UPLOAD_TYPE.FILE
+        ? signInBackgroundVideoFileCompressed
+        : signInBackgroundVideoFileCompressedUrl,
+      signInBackgroundImageFile,
+      signInBackgroundImageFileCompressed,
       homePageDescription,
       signInDescription
     ).then((data) => {
@@ -398,6 +488,20 @@ export default function PageSettings() {
     });
   };
 
+  const onSaveConnectContent = () => {
+    if (!connectContent) {
+      toast.warn("Please enter content.");
+      return;
+    }
+
+    updateConnectContent(connectContent).then((data) => {
+      if (data) {
+        setConnectContent(data.content);
+        toast.success("Successfully saved!");
+      }
+    });
+  };
+
   const fetchSubscriptionModalContentData = () => {
     fetchSubscriptionContent(user.id).then((data) => {
       if (data) {
@@ -463,6 +567,21 @@ export default function PageSettings() {
             label="Save"
             onClick={onSaveAboutContent}
           />
+          <div className="w-full flex flex-col md:flex-row justify-start items-center space-x-0 md:space-x-2">
+            <TextInput
+              sname="Connect Text"
+              label=""
+              placeholder="Enter connect text here"
+              type="text"
+              value={connectContent}
+              setValue={setConnectContent}
+            />
+          </div>
+          <ButtonSettings
+            bgColor="cyan"
+            label="Save"
+            onClick={onSaveConnectContent}
+          />
         </div>
       </div>
     </div>
@@ -480,22 +599,49 @@ export default function PageSettings() {
           />
           {backgroundType == FILE_TYPE.VIDEO ? (
             <div>
+              <RadioBoxGroup
+                options={UploadType}
+                name="UploadType RadioBox"
+                selectedValue={uploadType}
+                onChange={(value) =>
+                  handlePostOptionChange(value as UPLOAD_TYPE)
+                }
+              />
+
               <ButtonUpload
                 id="upload_high_quality_background_video"
-                label="Upload High Quality Background Video *"
-                file={backgroundVideoFile}
-                setFile={setBackgroundVideoFile}
+                label="Upload High Quality Home Background Video *"
+                file={
+                  uploadType == UPLOAD_TYPE.FILE
+                    ? backgroundVideoFile
+                    : backgroundVideoFileUrl
+                }
+                setFile={
+                  uploadType == UPLOAD_TYPE.FILE
+                    ? setBackgroundVideoFile
+                    : setBackgroundVideoFileUrl
+                }
                 fileType={FILE_TYPE.VIDEO}
                 uploaded={backgroundVideoFileUploaded}
+                uploadType={uploadType}
               />
 
               <ButtonUpload
                 id="upload_low_quality_background_video"
-                label="Upload Low Quality Background Video"
-                file={backgroundVideoFileCompressed}
-                setFile={setBackgroundVideoFileCompressed}
+                label="Upload Low Quality Home Background Video"
+                file={
+                  uploadType == UPLOAD_TYPE.FILE
+                    ? backgroundVideoFileCompressed
+                    : backgroundvideoFileCompressedUrl
+                }
+                setFile={
+                  uploadType == UPLOAD_TYPE.FILE
+                    ? setBackgroundVideoFileCompressed
+                    : setBackgroundVideoFileCompressedUrl
+                }
                 fileType={FILE_TYPE.VIDEO}
                 uploaded={backgroundVideoFileCompressedUploaded}
+                uploadType={uploadType}
               />
             </div>
           ) : (
@@ -515,6 +661,66 @@ export default function PageSettings() {
                 setFile={setBackgroundImageFileCompressed}
                 fileType={FILE_TYPE.IMAGE}
                 uploaded={backgroundImageFileCompressedUploaded}
+              />
+            </div>
+          )}
+          <br />
+
+          {backgroundType == FILE_TYPE.VIDEO ? (
+            <div>
+              <ButtonUpload
+                id="upload_high_quality_signin_background_video"
+                label="Upload High Quality SignIn Background Video *"
+                file={
+                  uploadType == UPLOAD_TYPE.FILE
+                    ? signInBackgroundVideoFile
+                    : signInBackgroundVideoFileUrl
+                }
+                setFile={
+                  uploadType == UPLOAD_TYPE.FILE
+                    ? setSignInBackgroundVideoFile
+                    : setSignInBackgroundVideoFileUrl
+                }
+                fileType={FILE_TYPE.VIDEO}
+                uploaded={signInBackgroundVideoFileUploaded}
+                uploadType={uploadType}
+              />
+
+              <ButtonUpload
+                id="upload_low_quality_signin_background_video"
+                label="Upload Low Quality SignIn Background Video"
+                file={
+                  uploadType == UPLOAD_TYPE.FILE
+                    ? signInBackgroundVideoFileCompressed
+                    : signInBackgroundVideoFileCompressedUrl
+                }
+                setFile={
+                  uploadType == UPLOAD_TYPE.FILE
+                    ? setSignInBackgroundVideoFileCompressed
+                    : setSignInBackgroundVideoFileCompressedUrl
+                }
+                fileType={FILE_TYPE.VIDEO}
+                uploaded={signInBackgroundVideoFileCompressedUploaded}
+                uploadType={uploadType}
+              />
+            </div>
+          ) : (
+            <div>
+              <ButtonUpload
+                id="upload_high_quality_signin_background_image"
+                label="Upload High Quality SignIn Background Image*"
+                file={signInBackgroundImageFile}
+                setFile={setSignInBackgroundImageFile}
+                fileType={FILE_TYPE.IMAGE}
+                uploaded={signInBackgroundImageFileUploaded}
+              />
+              <ButtonUpload
+                id="upload_low_quality_signin_background_image"
+                label="Upload Low Quality SignIn Background Image*"
+                file={signInBackgroundImageFileCompressed}
+                setFile={setSignInBackgroundImageFileCompressed}
+                fileType={FILE_TYPE.IMAGE}
+                uploaded={signInBackgroundImageFileCompressedUploaded}
               />
             </div>
           )}

@@ -7,6 +7,7 @@ import {
   API_BASE_URL,
   API_VERSION,
   RELEASEDATETIME_FORMAT,
+  UPLOAD_TYPE,
 } from "@/libs/constants";
 
 import { IMusic, IMusicQueryParam } from "@/interfaces/IMusic";
@@ -81,18 +82,38 @@ const useMusic = () => {
     copyright: string,
     lyrics: string,
     description: string,
-    releaseDate: string
+    releaseDate: string,
+    uploadType: UPLOAD_TYPE,
+    videoBackgroundFile: File | string,
+    videoBackgroundFileCompressed: File | string
   ): Promise<IMusic | null> => {
     return new Promise((resolve, reject) => {
       setIsLoading(true);
       setLoadingProgress(0);
 
       const formData = new FormData();
-      if (user.id) formData.append("userId", user.id.toString());
-      else formData.append("userId", "");
+
+      const nullFile = new File([""], "garbage.bin");
+
       formData.append("files", musicFile);
       formData.append("files", musicFileCompressed);
       formData.append("files", coverImage);
+      if (uploadType == UPLOAD_TYPE.FILE) {
+        formData.append("files", videoBackgroundFile);
+        formData.append("files", videoBackgroundFileCompressed);
+      } else {
+        formData.append("files", nullFile);
+        formData.append("files", nullFile);
+        formData.append("videoBackground", videoBackgroundFile);
+        formData.append(
+          "videoBackgroundCompressed",
+          videoBackgroundFileCompressed
+        );
+      }
+
+      if (user.id) formData.append("userId", user.id.toString());
+      else formData.append("userId", "");
+
       formData.append("isExclusive", isExclusive.toString());
       if (albumIds) {
         formData.append("albumIds", albumIds.toString());
@@ -172,19 +193,36 @@ const useMusic = () => {
     copyright: string,
     lyrics: string,
     description: string,
-    releaseDate: string
+    releaseDate: string,
+    uploadType: UPLOAD_TYPE,
+    videoBackgroundFile: File | string,
+    videoBackgroundFileCompressed: File | string
   ): Promise<IMusic | null> => {
     return new Promise((resolve, reject) => {
       setIsLoading(true);
 
+      const formData = new FormData();
       const nullFile = new File([""], "garbage.bin");
 
-      const formData = new FormData();
       if (id) formData.append("id", id.toString());
       else formData.append("id", "");
       formData.append("files", musicFile ?? nullFile);
       formData.append("files", musicFileCompressed ?? nullFile);
       formData.append("files", coverImage ?? nullFile);
+
+      if (uploadType == UPLOAD_TYPE.FILE) {
+        formData.append("files", videoBackgroundFile ?? nullFile);
+        formData.append("files", videoBackgroundFileCompressed ?? nullFile);
+      } else {
+        formData.append("files", nullFile);
+        formData.append("files", nullFile);
+        formData.append("videoBackground", videoBackgroundFile ?? "");
+        formData.append(
+          "videoBackgroundCompressed",
+          videoBackgroundFileCompressed ?? ""
+        );
+      }
+
       formData.append("isExclusive", isExclusive.toString());
       if (albumIds == null) {
         formData.append("albumIds", "");

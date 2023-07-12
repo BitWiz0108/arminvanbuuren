@@ -6,6 +6,10 @@ export interface IHomepage {
   backgroundVideoCompressed: string;
   backgroundImage: string;
   backgroundImageCompressed: string;
+  signInBackgroundVideo: string;
+  signInBackgroundVideoCompressed: string;
+  signInBackgroundImage: string;
+  signInBackgroundImageCompressed: string;
   homePageDescription: string;
   signInDescription: string;
 }
@@ -16,6 +20,10 @@ export const DEFAULT_HOMEPAGE = {
   backgroundVideoCompressed: "",
   backgroundImage: "",
   backgroundImageCompressed: "",
+  signInBackgroundVideo: "",
+  signInBackgroundVideoCompressed: "",
+  signInBackgroundImage: "",
+  signInBackgroundImageCompressed: "",
   homePageDescription: "",
   signInDescription: "",
 } as IHomepage;

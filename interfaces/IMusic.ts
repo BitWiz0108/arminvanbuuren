@@ -23,6 +23,8 @@ export interface IMusic {
   releaseDate: string;
   createdAt: string;
   favorites: any;
+  videoBackground: string;
+  videoBackgroundCompressed: string;
 }
 
 export const DEFAULT_MUSIC = {
@@ -43,6 +45,8 @@ export const DEFAULT_MUSIC = {
   description: "",
   releaseDate: "",
   createdAt: "",
+  videoBackground: "",
+  videoBackgroundCompressed: "",
 } as IMusic;
 
 export interface IMusicQueryParam {
@@ -58,6 +62,7 @@ export const DEFAULT_MUSICQUERYPARAM = {
   page: 1,
   limit: 10,
   title: "",
+  searchKey: "",
   albumName: "",
   releaseDate: "",
   artistName: "",

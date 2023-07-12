@@ -1,9 +1,11 @@
+import React, { useState } from "react";
 import Image from "next/image";
 import moment from "moment";
 
 import PaginationButtons from "@/components/PaginationButtons/index";
 import Edit from "@/components/Icons/Edit";
 import Delete from "@/components/Icons/Delete";
+import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 
 import {
   DATETIME_FORMAT,
@@ -33,6 +35,13 @@ const MusicTable = ({
   const clearQueryParam = (key: string) => {
     changeQueryParam(key, "");
   };
+
+  const [
+    isDeleteConfirmationModalVisible,
+    setIsDeleteConfirmationModalVisible,
+  ] = useState<boolean>(false);
+
+  const [deleteMusicId, setDeleteMusicId] = useState<Number | null>();
 
   const toggleQueryParam = (key: string, value: string) => {
     switch (value) {
@@ -168,7 +177,10 @@ const MusicTable = ({
                 width={24}
                 height={24}
                 className="text-primary hover:text-red-500 cursor-pointer transition-all duration-300"
-                onClick={() => deleteMusic(value.id)}
+                onClick={() => {
+                  setIsDeleteConfirmationModalVisible(true);
+                  setDeleteMusicId(value.id);
+                }}
               />
             </div>
           </div>
@@ -201,6 +213,15 @@ const MusicTable = ({
           />
         </div>
       </div>
+      {isDeleteConfirmationModalVisible && (
+        <DeleteConfirmationModal
+          visible={isDeleteConfirmationModalVisible}
+          setDelete={() => {
+            deleteMusic(deleteMusicId);
+          }}
+          setVisible={setIsDeleteConfirmationModalVisible}
+        />
+      )}
     </div>
   );
 };

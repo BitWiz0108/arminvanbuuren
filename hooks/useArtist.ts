@@ -3,7 +3,12 @@ import { toast } from "react-toastify";
 
 import { useAuthValues } from "@/contexts/contextAuth";
 
-import { API_BASE_URL, API_VERSION, FILE_TYPE } from "@/libs/constants";
+import {
+  API_BASE_URL,
+  API_VERSION,
+  FILE_TYPE,
+  UPLOAD_TYPE,
+} from "@/libs/constants";
 
 import { IArtist } from "@/interfaces/IArtist";
 import { IHomepage } from "@/interfaces/IHomepage";
@@ -77,7 +82,7 @@ const useArtist = () => {
       const nullFile = new File([""], "garbage.bin");
 
       const formData = new FormData();
-      if(bannerType) formData.append("bannerType", bannerType.toString());
+      if (bannerType) formData.append("bannerType", bannerType.toString());
       else formData.append("bannerType", "");
       if (bannerType == FILE_TYPE.IMAGE) {
         formData.append("files", bannerImageFile ?? nullFile);
@@ -108,14 +113,15 @@ const useArtist = () => {
       formData.append("instagram", instagram.toString());
       formData.append("soundcloud", soundcloud.toString());
 
-      if(siteName) formData.append("siteName", siteName.toString());
+      if (siteName) formData.append("siteName", siteName.toString());
       else formData.append("siteName", "");
-      if(siteUrl) formData.append("siteUrl", siteUrl.toString());
-      else  formData.append("siteUrl", "");
-      if(siteTitle) formData.append("siteTitle", siteTitle.toString());
+      if (siteUrl) formData.append("siteUrl", siteUrl.toString());
+      else formData.append("siteUrl", "");
+      if (siteTitle) formData.append("siteTitle", siteTitle.toString());
       else formData.append("siteTitle", "");
-      if(siteDescription) formData.append("siteDescription", siteDescription.toString());
-      else formData.append("siteDescription","");
+      if (siteDescription)
+        formData.append("siteDescription", siteDescription.toString());
+      else formData.append("siteDescription", "");
 
       const xhr = new XMLHttpRequest();
       xhr.open("PUT", `${API_BASE_URL}/${API_VERSION}/admin/artist`);
@@ -176,26 +182,55 @@ const useArtist = () => {
 
   const updateHomeContent = async (
     backgroundType: FILE_TYPE,
-    backgroundVideoFile: File | null,
-    backgroundVideoFileCompressed: File | null,
+    uploadType: UPLOAD_TYPE,
+    backgroundVideoFile: File | string | null,
+    backgroundVideoFileCompressed: File | string | null,
     backgroundImageFile: File | null,
     backgroundImageFileCompressed: File | null,
+    signInBackgroundVideoFile: File | string | null,
+    signInBackgroundVideoFileCompressed: File | string | null,
+    signInBackgroundImageFile: File | null,
+    signInBackgroundImageFileCompressed: File | null,
     homePageDescription: string,
     signInDescription: string
   ): Promise<IHomepage | null> => {
     return new Promise((resolve, reject) => {
       setIsLoading(true);
       const nullFile = new File([""], "garbage.bin");
-
       const formData = new FormData();
       formData.append("type", backgroundType);
 
       if (backgroundType == FILE_TYPE.IMAGE) {
         formData.append("files", backgroundImageFile ?? nullFile);
         formData.append("files", backgroundImageFileCompressed ?? nullFile);
+        formData.append("files", signInBackgroundImageFile ?? nullFile);
+        formData.append("files", backgroundImageFileCompressed ?? nullFile);
       } else {
-        formData.append("files", backgroundVideoFile ?? nullFile);
-        formData.append("files", backgroundVideoFileCompressed ?? nullFile);
+        if (uploadType == UPLOAD_TYPE.FILE) {
+          formData.append("files", backgroundVideoFile ?? nullFile);
+          formData.append("files", backgroundVideoFileCompressed ?? nullFile);
+          formData.append("files", signInBackgroundVideoFile ?? nullFile);
+          formData.append(
+            "files",
+            signInBackgroundVideoFileCompressed ?? nullFile
+          );
+        } else {
+          formData.append("files", nullFile);
+          formData.append("files", nullFile);
+          formData.append("backgroundVideo", backgroundVideoFile ?? "");
+          formData.append(
+            "backgroundVideoCompressed",
+            backgroundVideoFileCompressed ?? ""
+          );
+          formData.append(
+            "signInBackgroundVideo",
+            signInBackgroundVideoFile ?? ""
+          );
+          formData.append(
+            "signInBackgroundVideoCompressed",
+            signInBackgroundVideoFileCompressed ?? ""
+          );
+        }
       }
 
       formData.append("homePageDescription", homePageDescription.toString());

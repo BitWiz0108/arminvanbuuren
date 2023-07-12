@@ -14,6 +14,7 @@ import {
   DATETIME_FORMAT,
   FILE_TYPE,
   PLACEHOLDER_IMAGE,
+  UPLOAD_TYPE,
 } from "@/libs/constants";
 
 import { useAuthValues } from "@/contexts/contextAuth";
@@ -23,6 +24,7 @@ import useAlbum from "@/hooks/useAlbum";
 import { IAlbum } from "@/interfaces/IAlbum";
 import moment from "moment";
 import DateInput from "@/components/DateInput";
+import RadioBoxGroup from "@/components/RadioBoxGroup";
 
 export default function Album() {
   const { isSignedIn } = useAuthValues();
@@ -46,6 +48,33 @@ export default function Album() {
   const [releaseDate, setReleaseDate] = useState<string>(
     moment().format(DATETIME_FORMAT)
   );
+  const [uploadType, setUploadType] = useState<UPLOAD_TYPE>(UPLOAD_TYPE.FILE);
+  const [videoBackgroundFile, setVideoBackgroundFile] = useState<File | null>(
+    null
+  );
+  const [videoBackgroundFileUploaded, setVideoBackgroundFileUploaded] =
+    useState<string>("");
+  const [videoBackgroundFileUrl, setVideoBackgroundFileUrl] =
+    useState<string>("");
+  const [videoBackgroundFileCompressed, setVideoBackgroundFileCompressed] =
+    useState<File | null>(null);
+  const [
+    videoBackGroundFileCompressedUploaded,
+    setVideoBackgroundFileCompressedUploaded,
+  ] = useState<string>("");
+  const [
+    videoBackgroundFileCompressedUrl,
+    setVideoBackgroundFileCompressedUrl,
+  ] = useState<string>("");
+
+  const UploadType = [
+    { label: "File", value: UPLOAD_TYPE.FILE },
+    { label: "URL", value: UPLOAD_TYPE.URL },
+  ];
+
+  const handlePostOptionChange = (value: UPLOAD_TYPE) => {
+    setUploadType(value);
+  };
 
   const clearFields = () => {
     setName("");
@@ -61,22 +90,44 @@ export default function Album() {
     }
 
     if (isEditing) {
-      updateAlbum(selectedId, imageFile, name, description, releaseDate).then(
-        (value) => {
-          if (value) {
-            clearFields();
-            fetchAlbums();
-
-            toast.success("Successfully updated!");
-          }
-        }
-      );
-    } else {
-      createAlbum(imageFile!, name, description, releaseDate).then((value) => {
+      updateAlbum(
+        selectedId,
+        imageFile,
+        name,
+        description,
+        releaseDate,
+        uploadType,
+        uploadType == UPLOAD_TYPE.FILE
+          ? videoBackgroundFile!
+          : videoBackgroundFileUrl,
+        uploadType == UPLOAD_TYPE.FILE
+          ? videoBackgroundFileCompressed!
+          : videoBackgroundFileCompressedUrl
+      ).then((value) => {
         if (value) {
           clearFields();
           fetchAlbums();
 
+          toast.success("Successfully updated!");
+        }
+      });
+    } else {
+      createAlbum(
+        imageFile!,
+        name,
+        description,
+        releaseDate,
+        uploadType,
+        uploadType == UPLOAD_TYPE.FILE
+          ? videoBackgroundFile!
+          : videoBackgroundFileUrl,
+        uploadType == UPLOAD_TYPE.FILE
+          ? videoBackgroundFileCompressed!
+          : videoBackgroundFileCompressedUrl
+      ).then((value) => {
+        if (value) {
+          clearFields();
+          fetchAlbums();
           toast.success("Successfully added!");
         }
       });
@@ -138,6 +189,16 @@ export default function Album() {
               setReleaseDate(
                 albums[index].releaseDate ?? moment().format(DATETIME_FORMAT)
               );
+              setVideoBackgroundFile(null);
+              setVideoBackgroundFileUploaded(albums[index].videoBackground);
+              setVideoBackgroundFileUrl(albums[index].videoBackground);
+              setVideoBackgroundFileCompressed(null);
+              setVideoBackgroundFileCompressedUploaded(
+                albums[index].videoBackgroundCompressed
+              );
+              setVideoBackgroundFileCompressedUrl(
+                albums[index].videoBackgroundCompressed
+              );
               setImageFile(null);
               setSelectedId(id);
               setIsDetailViewOpened(true);
@@ -190,6 +251,54 @@ export default function Album() {
             fileType={FILE_TYPE.IMAGE}
             uploaded={imageFileUploaded}
           />
+
+          <RadioBoxGroup
+            options={UploadType}
+            name="UploadType RadioBox"
+            selectedValue={uploadType}
+            onChange={(value) => handlePostOptionChange(value as UPLOAD_TYPE)}
+          />
+          <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2 space-y-2 lg:space-y-0 mt-2 lg:mt-0">
+            <div className="w-full lg:w-1/2">
+              <ButtonUpload
+                id="upload_high_quality_video_background"
+                label="Upload High Quality Video Background"
+                file={
+                  uploadType == UPLOAD_TYPE.FILE
+                    ? videoBackgroundFile
+                    : videoBackgroundFileUrl
+                }
+                setFile={
+                  uploadType == UPLOAD_TYPE.FILE
+                    ? setVideoBackgroundFile
+                    : setVideoBackgroundFileUrl
+                }
+                fileType={FILE_TYPE.VIDEO}
+                uploaded={videoBackgroundFileUploaded}
+                uploadType={uploadType}
+                mainContent={true}
+              />
+            </div>
+            <div className="w-full lg:w-1/2">
+              <ButtonUpload
+                id="upload_low_quality_video_background"
+                label="Upload Low Quality Video Background"
+                file={
+                  uploadType == UPLOAD_TYPE.FILE
+                    ? videoBackgroundFileCompressed
+                    : videoBackgroundFileCompressedUrl
+                }
+                setFile={
+                  uploadType == UPLOAD_TYPE.FILE
+                    ? setVideoBackgroundFileCompressed
+                    : setVideoBackgroundFileCompressedUrl
+                }
+                fileType={FILE_TYPE.VIDEO}
+                uploaded={videoBackGroundFileCompressedUploaded}
+                uploadType={uploadType}
+              />
+            </div>
+          </div>
 
           <div className="flex space-x-2 mt-5">
             <ButtonSettings

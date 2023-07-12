@@ -164,3 +164,16 @@ select:-webkit-autofill:focus {
   justify-content: center;
   align-items: center;
 }
+
+.transparent-loading {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 50;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}

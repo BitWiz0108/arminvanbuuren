@@ -8,6 +8,8 @@ export interface IAlbum {
   releaseDate: string;
   createdAt: string;
   description: string;
+  videoBackground: string;
+  videoBackgroundCompressed: string;
 }
 
 export const DEFAULT_IALBUM = {
@@ -17,4 +19,6 @@ export const DEFAULT_IALBUM = {
   creator: null,
   releaseDate: "",
   description: "",
+  videoBackground: "",
+  videoBackgroundCompressed: "",
 } as IAlbum;

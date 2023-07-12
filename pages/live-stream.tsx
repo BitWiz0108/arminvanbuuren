@@ -125,9 +125,19 @@ export default function Livestream() {
   const [queryParams, setQueryParams] = useState<IStreamQueryParam>(
     DEFAULT_STREAMQUERYPARAM
   );
+  const [searchKey, setSearchKey] = useState<string>("");
 
-  const changeQueryParam = (key: string, value: number | string) => {
-    setQueryParams({ ...queryParams, [key]: value });
+  const changeQueryParam = (
+    key: string,
+    value: number | string,
+    callback: Function | null = null
+  ) => {
+    setQueryParams((prev) => {
+      if (callback) {
+        callback({ ...prev, [key]: value });
+      }
+      return { ...prev, [key]: value };
+    });
   };
 
   const handlePostOptionChange = (value: UPLOAD_TYPE) => {
@@ -203,7 +213,7 @@ export default function Livestream() {
       ).then((value) => {
         if (value) {
           clearFields();
-          fetchLivestreams();
+          fetchLivestreams(queryParams);
 
           toast.success("Successfully updated!");
         }
@@ -233,7 +243,7 @@ export default function Livestream() {
       ).then((value) => {
         if (value) {
           clearFields();
-          fetchLivestreams();
+          fetchLivestreams(queryParams);
 
           toast.success("Successfully added!");
         }
@@ -243,13 +253,19 @@ export default function Livestream() {
     setIsDetailedViewOpened(false);
   };
 
-  const fetchLivestreams = () => {
+  const fetchLivestreams = (queryParams: IStreamQueryParam) => {
     fetchLivestream(queryParams).then((data) => {
       if (data) {
         setTotalCount(data.pages);
         setLivestreams(data.livestreams);
       }
     });
+  };
+
+  const handleSearchKeyChange = (value: string) => {
+    changeQueryParam("searchKey", value, (queryParam: IStreamQueryParam) =>
+      fetchLivestreams(queryParam)
+    );
   };
 
   const reply = () => {
@@ -281,7 +297,7 @@ export default function Livestream() {
 
   useEffect(() => {
     if (isSignedIn) {
-      fetchLivestreams();
+      fetchLivestreams(queryParams);
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -319,8 +335,8 @@ export default function Livestream() {
 
   const tableView = (
     <div className="w-full">
-      <div className="w-full flex justify-start items-center p-5">
-        <div className="w-40">
+      <div className="w-full flex flex-col md:flex-row justify-between items-center p-5">
+        <div className="w-40 self-start pt-5">
           <ButtonSettings
             label="Add"
             bgColor="cyan"
@@ -328,6 +344,18 @@ export default function Livestream() {
               clearFields();
               setIsEditing(false);
               setIsDetailedViewOpened(true);
+            }}
+          />
+        </div>
+        <div className="w-60 self-end">
+          <TextInput
+            label=""
+            placeholder="Enter Music Title"
+            type="text"
+            value={searchKey}
+            setValue={(value: string) => {
+              setSearchKey(value);
+              handleSearchKeyChange(value);
             }}
           />
         </div>
@@ -341,7 +369,7 @@ export default function Livestream() {
           deleteLivestream={(id: number) =>
             deleteLivestream(id).then((value) => {
               if (value) {
-                fetchLivestreams();
+                fetchLivestreams(queryParams);
 
                 toast.success("Successfully deleted!");
               }
@@ -760,7 +788,7 @@ export default function Livestream() {
       </div>
 
       {isLoading && (
-        <div className="loading w-[50px] h-[50px]">
+        <div className="transparent-loading w-[50px] h-[50px]">
           {loadingProgress > 0 ? (
             <div className="w-20 h-20">
               <CircularProgressbar

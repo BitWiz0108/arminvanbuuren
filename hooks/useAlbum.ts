@@ -8,6 +8,7 @@ import {
   API_VERSION,
   DATETIME_FORMAT,
   RELEASEDATETIME_FORMAT,
+  UPLOAD_TYPE,
 } from "@/libs/constants";
 
 import { IAlbum } from "@/interfaces/IAlbum";
@@ -50,14 +51,31 @@ const useAlbum = () => {
     image: File,
     name: string,
     description: string,
-    releaseDate: string
+    releaseDate: string,
+    uploadType: UPLOAD_TYPE,
+    videoBackgroundFile: File | string,
+    videoBackgroundFileCompressed: File | string
   ): Promise<IAlbum | null> => {
     return new Promise((resolve, reject) => {
       setIsLoading(true);
       setLoadingProgress(0);
       const formData = new FormData();
+      const nullFile = new File([""], "garbage.bin");
 
-      formData.append("imageFile", image);
+      formData.append("files", image);
+      if (uploadType == UPLOAD_TYPE.FILE) {
+        formData.append("files", videoBackgroundFile);
+        formData.append("files", videoBackgroundFileCompressed);
+      } else {
+        formData.append("files", nullFile);
+        formData.append("files", nullFile);
+        formData.append("videoBackground", videoBackgroundFile);
+        formData.append(
+          "videoBackgroundCompressed",
+          videoBackgroundFileCompressed
+        );
+      }
+
       formData.append("name", name.toString());
       if (user.id) formData.append("userId", user.id.toString());
       else formData.append("userId", "");
@@ -112,16 +130,29 @@ const useAlbum = () => {
     image: File | null,
     name: string,
     description: string,
-    releaseDate: string
+    releaseDate: string,
+    uploadType: UPLOAD_TYPE,
+    videoBackgroundFile: File | string,
+    videoBackgroundFileCompressed: File | string
   ): Promise<IAlbum | null> => {
     return new Promise((resolve, reject) => {
       setIsLoading(true);
-
       const formData = new FormData();
+      const nullFile = new File([""], "garbage.bin");
       if (id) formData.append("id", id.toString());
       else formData.append("id", "");
-      if (image) {
-        formData.append("imageFile", image);
+      formData.append("files", image ?? nullFile);
+      if (uploadType == UPLOAD_TYPE.FILE) {
+        formData.append("files", videoBackgroundFile ?? nullFile);
+        formData.append("files", videoBackgroundFileCompressed ?? nullFile);
+      } else {
+        formData.append("files", nullFile);
+        formData.append("files", nullFile);
+        formData.append("videoBackground", videoBackgroundFile ?? "");
+        formData.append(
+          "videoBackgroundCompressed",
+          videoBackgroundFileCompressed ?? ""
+        );
       }
       formData.append("name", name.toString());
       if (user.id) formData.append("userId", user.id.toString());
