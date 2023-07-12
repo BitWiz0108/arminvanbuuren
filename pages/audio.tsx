@@ -20,7 +20,7 @@ import { useAuthValues } from "@/contexts/contextAuth";
 import useAlbum from "@/hooks/useAlbum";
 import useMusic from "@/hooks/useMusic";
 
-import { DATETIME_FORMAT, FILE_TYPE } from "@/libs/constants";
+import { DATETIME_FORMAT, FILE_TYPE, UPLOAD_TYPE } from "@/libs/constants";
 
 import { IAlbum } from "@/interfaces/IAlbum";
 import {
@@ -28,6 +28,7 @@ import {
   IMusic,
   IMusicQueryParam,
 } from "@/interfaces/IMusic";
+import RadioBoxGroup from "@/components/RadioBoxGroup";
 
 const TextAreaInput = dynamic(() => import("@/components/TextAreaInput"), {
   ssr: false,
@@ -60,6 +61,7 @@ export default function Music() {
   const [musicFileCompressedUploaded, setMusicFileCompressedUploaded] =
     useState<string>("");
   const [title, setTitle] = useState<string>("");
+  const [searchKey, setSearchKey] = useState<string>("");
   const [isExclusive, setIsExclusive] = useState<boolean>(false);
   const [albumIds, setAlbumIds] = useState<Array<number> | null>(null);
   const [releaseDate, setReleaseDate] = useState<string>(
@@ -77,9 +79,45 @@ export default function Music() {
   const [queryParams, setQueryParams] = useState<IMusicQueryParam>(
     DEFAULT_MUSICQUERYPARAM
   );
+  const changeQueryParam = (
+    key: string,
+    value: number | string,
+    callback: Function | null = null
+  ) => {
+    setQueryParams((prev) => {
+      if (callback) {
+        callback({ ...prev, [key]: value });
+      }
+      return { ...prev, [key]: value };
+    });
+  };
 
-  const changeQueryParam = (key: string, value: number | string) => {
-    setQueryParams({ ...queryParams, [key]: value });
+  const [uploadType, setUploadType] = useState<UPLOAD_TYPE>(UPLOAD_TYPE.FILE);
+  const [videoBackgroundFile, setVideoBackgroundFile] = useState<File | null>(
+    null
+  );
+  const [videoBackgroundFileUploaded, setVideoBackgroundFileUploaded] =
+    useState<string>("");
+  const [videoBackgroundFileUrl, setVideoBackgroundFileUrl] =
+    useState<string>("");
+  const [videoBackgroundFileCompressed, setVideoBackgroundFileCompressed] =
+    useState<File | null>(null);
+  const [
+    videoBackGroundFileCompressedUploaded,
+    setVideoBackgroundFileCompressedUploaded,
+  ] = useState<string>("");
+  const [
+    videoBackgroundFileCompressedUrl,
+    setVideoBackgroundFileCompressedUrl,
+  ] = useState<string>("");
+
+  const UploadType = [
+    { label: "File", value: UPLOAD_TYPE.FILE },
+    { label: "URL", value: UPLOAD_TYPE.URL },
+  ];
+
+  const handlePostOptionChange = (value: UPLOAD_TYPE) => {
+    setUploadType(value);
   };
 
   const clearFields = () => {
@@ -126,11 +164,18 @@ export default function Music() {
         copyright,
         lyrics,
         description,
-        releaseDate
+        releaseDate,
+        uploadType,
+        uploadType == UPLOAD_TYPE.FILE
+          ? videoBackgroundFile!
+          : videoBackgroundFileUrl,
+        uploadType == UPLOAD_TYPE.FILE
+          ? videoBackgroundFileCompressed!
+          : videoBackgroundFileCompressedUrl
       ).then((value) => {
         if (value) {
           clearFields();
-          fetchMusics();
+          fetchMusics(queryParams);
 
           toast.success("Successfully updated!");
         }
@@ -149,11 +194,18 @@ export default function Music() {
         copyright,
         lyrics,
         description,
-        releaseDate
+        releaseDate,
+        uploadType,
+        uploadType == UPLOAD_TYPE.FILE
+          ? videoBackgroundFile!
+          : videoBackgroundFileUrl,
+        uploadType == UPLOAD_TYPE.FILE
+          ? videoBackgroundFileCompressed!
+          : videoBackgroundFileCompressedUrl
       ).then((value) => {
         if (value) {
           clearFields();
-          fetchMusics();
+          fetchMusics(queryParams);
           toast.success("Successfully added!");
         }
       });
@@ -161,13 +213,19 @@ export default function Music() {
     setIsDetailedViewOpened(false);
   };
 
-  const fetchMusics = () => {
+  const fetchMusics = (queryParams: IMusicQueryParam) => {
     fetchMusic(queryParams).then((data) => {
       if (data) {
         setTotalCount(data.pages);
         setMusics(data.musics);
       }
     });
+  };
+
+  const handleSearchKeyChange = (value: string) => {
+    changeQueryParam("searchKey", value, (queryParam: IMusicQueryParam) =>
+      fetchMusics(queryParam)
+    );
   };
 
   useEffect(() => {
@@ -179,7 +237,7 @@ export default function Music() {
 
   useEffect(() => {
     if (isSignedIn) {
-      fetchMusics();
+      fetchMusics(queryParams);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -204,8 +262,8 @@ export default function Music() {
 
   const tableView = (
     <div className="w-full">
-      <div className="w-full flex justify-start items-center p-5">
-        <div className="w-40">
+      <div className="w-full flex flex-col md:flex-row justify-between items-center p-5">
+        <div className="w-40 self-start pt-5">
           <ButtonSettings
             label="Add"
             bgColor="cyan"
@@ -213,6 +271,18 @@ export default function Music() {
               clearFields();
               setIsEditing(false);
               setIsDetailedViewOpened(true);
+            }}
+          />
+        </div>
+        <div className="w-60 self-end">
+          <TextInput
+            label=""
+            placeholder="Enter Music Title"
+            type="text"
+            value={searchKey}
+            setValue={(value: string) => {
+              setSearchKey(value);
+              handleSearchKeyChange(value);
             }}
           />
         </div>
@@ -226,7 +296,7 @@ export default function Music() {
           deleteMusic={(id: number) =>
             deleteMusic(id).then((value) => {
               if (value) {
-                fetchMusics();
+                fetchMusics(queryParams);
 
                 toast.success("Successfully deleted!");
               }
@@ -257,6 +327,17 @@ export default function Music() {
               setDescription(musics[index].description);
               setSelectedId(id);
               setIsDetailedViewOpened(true);
+              setVideoBackgroundFile(null);
+              setVideoBackgroundFileUploaded(musics[index].videoBackground);
+              setVideoBackgroundFileUrl(musics[index].videoBackground);
+              setVideoBackgroundFileCompressed(null);
+              setVideoBackgroundFileCompressedUploaded(
+                musics[index].videoBackgroundCompressed
+              );
+              setVideoBackgroundFileCompressedUrl(
+                musics[index].videoBackgroundCompressed
+              );
+              setImageFile(null);
             }
           }}
         />
@@ -390,6 +471,55 @@ export default function Music() {
                 />
               </div>
             </div>
+
+            <RadioBoxGroup
+              options={UploadType}
+              name="UploadType RadioBox"
+              selectedValue={uploadType}
+              onChange={(value) => handlePostOptionChange(value as UPLOAD_TYPE)}
+            />
+            <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 lg:space-x-2 space-y-2 lg:space-y-0 mt-2 lg:mt-0">
+              <div className="w-full lg:w-1/2">
+                <ButtonUpload
+                  id="upload_high_quality_video_background"
+                  label="Upload High Quality Video Background"
+                  file={
+                    uploadType == UPLOAD_TYPE.FILE
+                      ? videoBackgroundFile
+                      : videoBackgroundFileUrl
+                  }
+                  setFile={
+                    uploadType == UPLOAD_TYPE.FILE
+                      ? setVideoBackgroundFile
+                      : setVideoBackgroundFileUrl
+                  }
+                  fileType={FILE_TYPE.VIDEO}
+                  uploaded={videoBackgroundFileUploaded}
+                  uploadType={uploadType}
+                  mainContent={true}
+                />
+              </div>
+              <div className="w-full lg:w-1/2">
+                <ButtonUpload
+                  id="upload_low_quality_video_background"
+                  label="Upload Low Quality Video Background"
+                  file={
+                    uploadType == UPLOAD_TYPE.FILE
+                      ? videoBackgroundFileCompressed
+                      : videoBackgroundFileCompressedUrl
+                  }
+                  setFile={
+                    uploadType == UPLOAD_TYPE.FILE
+                      ? setVideoBackgroundFileCompressed
+                      : setVideoBackgroundFileCompressedUrl
+                  }
+                  fileType={FILE_TYPE.VIDEO}
+                  uploaded={videoBackGroundFileCompressedUploaded}
+                  uploadType={uploadType}
+                />
+              </div>
+            </div>
+
             <div className="w-full flex flex-col lg:flex-row justify-start items-center space-x-0 md:space-x-2">
               <TextInput
                 sname="Copyright"
@@ -429,7 +559,7 @@ export default function Music() {
       </div>
 
       {isLoading && (
-        <div className="loading w-[50px] h-[50px]">
+        <div className="transparent-loading w-[50px] h-[50px]">
           {loadingProgress > 0 ? (
             <div className="w-20 h-20">
               <CircularProgressbar
