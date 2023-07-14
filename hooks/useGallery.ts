@@ -205,6 +205,34 @@ const useGallery = () => {
     return false;
   };
 
+  const reArrangeImage = async (
+    sourceOrderId: number | null,
+    destinationOrderId: number | null
+  ) => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `${API_BASE_URL}/${API_VERSION}/admin/gallery/rearrange`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          sourceOrderId: sourceOrderId,
+          destinationOrderId: destinationOrderId,
+        }),
+      }
+    );
+    if (response.ok) {
+      setIsLoading(false);
+      return true;
+    }
+    setIsLoading(false);
+    return false;
+  };
+
   return {
     isLoading,
     loadingProgress,
@@ -212,6 +240,7 @@ const useGallery = () => {
     addImage,
     updateImage,
     deleteImage,
+    reArrangeImage,
   };
 };
 

@@ -156,7 +156,7 @@ export default function Home() {
       <div className="relative w-full max-h-full justify=center items-center overflow-y-scroll">
         <div className="relative w-full h-full min-h-screen justify-center items-center overflow-x-hidden pb-2">
           <h1 className="text-2xl xl:text-4xl font-800 pt-8 text-center">
-            Welcome {user.username}{" "}
+            Welcome {user.username}
           </h1>
           <div className="w-full flex flex-col xl:flex-row items-start px-8 space-x-0 space-y-5 xl:space-x-5 xl:space-y-0 pt-4">
             <div className="w-full xl:w-1/2 flex flex-col md:flex-row p-5 bg-[#2f363e] rounded-lg">

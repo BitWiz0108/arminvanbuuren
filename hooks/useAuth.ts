@@ -196,7 +196,6 @@ const useAuth = () => {
   const resetPassword = async (email: string) => {
     setIsLoading(true);
 
-    // TODO: integrate api
     const response = await fetch(
       `${API_BASE_URL}/${API_VERSION}/auth/resetpassword`,
       {

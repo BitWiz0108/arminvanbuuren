@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 
 import TextInput from "@/components/TextInput";
+import RadioBoxGroup from "@/components/RadioBoxGroup";
 
 import {
   FILE_TYPE,
@@ -9,7 +10,6 @@ import {
   PLACEHOLDER_IMAGE,
   UPLOAD_TYPE,
 } from "@/libs/constants";
-import RadioBoxGroup from "../RadioBoxGroup";
 
 type Props = {
   id: string;
@@ -120,9 +120,7 @@ const ButtonUploadWithFileType = ({
         options={radioBoxOptions}
         name={`myRadioGroup_${id}`}
         selectedValue={fileType!}
-        onChange={(value) =>
-          setFileType(value as FILE_TYPE)
-        }
+        onChange={(value) => setFileType(value as FILE_TYPE)}
       />
       {uploadType == UPLOAD_TYPE.FILE ? (
         <div className="flex flex-col justify-center items-center space-y-2">

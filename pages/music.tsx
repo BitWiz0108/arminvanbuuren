@@ -29,6 +29,7 @@ import {
   IMusicQueryParam,
 } from "@/interfaces/IMusic";
 import RadioBoxGroup from "@/components/RadioBoxGroup";
+import { IPlayList } from "@/interfaces/IPlayList";
 
 const TextAreaInput = dynamic(() => import("@/components/TextAreaInput"), {
   ssr: false,
@@ -79,6 +80,7 @@ export default function Music() {
   const [queryParams, setQueryParams] = useState<IMusicQueryParam>(
     DEFAULT_MUSICQUERYPARAM
   );
+
   const changeQueryParam = (
     key: string,
     value: number | string,
@@ -262,7 +264,7 @@ export default function Music() {
 
   const tableView = (
     <div className="w-full">
-      <div className="w-full flex flex-col md:flex-row justify-between items-center p-5">
+      <div className="w-full flex flex-col md:flex-row justify-center md:justify-between items-center p-5">
         <div className="w-40 self-start pt-5">
           <ButtonSettings
             label="Add"
@@ -293,11 +295,11 @@ export default function Music() {
           queryParam={queryParams}
           changeQueryParam={changeQueryParam}
           totalCount={totalCount}
+          addPlaylist={(id: number) => {}}
           deleteMusic={(id: number) =>
             deleteMusic(id).then((value) => {
               if (value) {
                 fetchMusics(queryParams);
-
                 toast.success("Successfully deleted!");
               }
             })

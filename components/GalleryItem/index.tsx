@@ -40,14 +40,14 @@ const GalleryItem = ({ index, image, onDelete, onEdit }: Props) => {
 
   return (
     <div
-      className="relative w-full h-[280px] max-h-[280px] overflow-hidden rounded-md"
+      className="relative w-full h-full overflow-hidden rounded-md"
       onMouseEnter={() => onHover()}
       onMouseLeave={() => onOut()}
     >
       {image.type == FILE_TYPE.IMAGE ? (
         <Image
           className={twMerge(
-            "w-full h-[280px] max-h-[280px] object-cover transition-all duration-300",
+            "w-full h-full object-cover transition-all duration-300",
             hovered ? "scale-110" : "scale-100"
           )}
           src={image.imageCompressed ?? DEFAULT_BANNER_IMAGE}
@@ -65,7 +65,7 @@ const GalleryItem = ({ index, image, onDelete, onEdit }: Props) => {
           autoPlay
           playsInline
           className={twMerge(
-            "w-full h-[280px] max-h-[280px] object-cover transition-all duration-300",
+            "w-full h-full object-cover transition-all duration-300",
             hovered ? "scale-110" : "scale-100"
           )}
           src={image.videoCompressed}
@@ -81,8 +81,18 @@ const GalleryItem = ({ index, image, onDelete, onEdit }: Props) => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Edit width={24} height={24} onClick={() => onEdit(index)} />
-            <Delete width={24} height={24} onClick={() => onDelete(index)} />
+            <Edit
+              width={24}
+              height={24}
+              onClick={() => onEdit(index)}
+              className="text-primary hover:text-blueSecondary cursor-pointer"
+            />
+            <Delete
+              width={24}
+              height={24}
+              onClick={() => onDelete(index)}
+              className="text-primary hover:text-red-500 cursor-pointer"
+            />
           </motion.div>
         )}
       </AnimatePresence>

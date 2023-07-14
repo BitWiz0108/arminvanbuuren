@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import moment from "moment";
 
 import Delete from "@/components/Icons/Delete";
 import Edit from "@/components/Icons/Edit";
+import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 
 import {
   DATETIME_FORMAT,
@@ -20,6 +21,13 @@ type Props = {
 };
 
 const AlbumTable = ({ albums, deleteAlbum, updateAlbum }: Props) => {
+  const [
+    isDeleteConfirmationModalVisible,
+    setIsDeleteConfirmationModalVisible,
+  ] = useState<boolean>(false);
+
+  const [deleteAlbumId, setDeleteAlbumId] = useState<Number | null>();
+
   return (
     <div className="w-full">
       <div className="w-full mt-2 py-3 px-5 flex flex-row justify-start items-center">
@@ -60,12 +68,24 @@ const AlbumTable = ({ albums, deleteAlbum, updateAlbum }: Props) => {
                 width={24}
                 height={24}
                 className="text-primary hover:text-red-500 cursor-pointer transition-all duration-300"
-                onClick={() => deleteAlbum(value.id)}
+                onClick={() => {
+                  setIsDeleteConfirmationModalVisible(true);
+                  setDeleteAlbumId(value.id);
+                }}
               />
             </div>
           </div>
         );
       })}
+      {isDeleteConfirmationModalVisible && (
+        <DeleteConfirmationModal
+          visible={isDeleteConfirmationModalVisible}
+          setDelete={() => {
+            deleteAlbum(deleteAlbumId);
+          }}
+          setVisible={setIsDeleteConfirmationModalVisible}
+        />
+      )}
     </div>
   );
 };

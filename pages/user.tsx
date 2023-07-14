@@ -359,7 +359,7 @@ export default function User() {
                   setValue={setPassword}
                 />
               </div>
-            )}{" "}
+            )}
           </div>
 
           <div className="w-full flex flex-col lg:flex-row space-x-0 lg:space-x-5">

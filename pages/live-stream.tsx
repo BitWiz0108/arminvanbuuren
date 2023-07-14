@@ -350,7 +350,7 @@ export default function Livestream() {
         <div className="w-60 self-end">
           <TextInput
             label=""
-            placeholder="Enter Music Title"
+            placeholder="Enter Livestream Title"
             type="text"
             value={searchKey}
             setValue={(value: string) => {
@@ -567,7 +567,7 @@ export default function Livestream() {
                 readOnly={uploadType == UPLOAD_TYPE.URL ? false : true}
                 sname="Hours"
                 label=""
-                placeholder="Enter Music Duration (s)"
+                placeholder="Enter Livestream Duration (s)"
                 type="text"
                 value={hours}
                 setValue={(value: string) => setHours(Number(value))}
@@ -577,7 +577,7 @@ export default function Livestream() {
                 readOnly={uploadType == UPLOAD_TYPE.URL ? false : true}
                 sname="Minutes"
                 label=""
-                placeholder="Enter Music Duration (s)"
+                placeholder="Enter Livestream Duration (s)"
                 type="text"
                 value={minutes}
                 setValue={(value: string) => setMinutes(Number(value))}
@@ -587,7 +587,7 @@ export default function Livestream() {
                 readOnly={uploadType == UPLOAD_TYPE.URL ? false : true}
                 sname="Seconds"
                 label=""
-                placeholder="Enter Music Duration (s)"
+                placeholder="Enter Livestream Duration (s)"
                 type="text"
                 value={seconds}
                 setValue={(value: string) => setSeconds(Number(value))}

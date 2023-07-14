@@ -12,6 +12,7 @@ export interface IImage {
   video: string;
   videoCompressed: string;
   size: IMAGE_SIZE;
+  orderId: number | null;
   description: string;
 }
 
@@ -27,5 +28,6 @@ export const DEFAULT_IMAGE = {
   video: "",
   videoCompressed: "",
   size: IMAGE_SIZE.SQUARE,
+  orderId: null,
   description: "",
 } as IImage;

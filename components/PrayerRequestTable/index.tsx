@@ -2,13 +2,11 @@ import moment from "moment";
 
 import PaginationButtons from "@/components/PaginationButtons/index";
 import Delete from "@/components/Icons/Delete";
+import Switch from "@/components/Switch";
 
-import {
-  DATETIME_FORMAT,
-} from "@/libs/constants";
+import { DATETIME_FORMAT } from "@/libs/constants";
 
 import { IPrayerRequest } from "@/interfaces/IPrayerRequest";
-import Switch from "../Switch";
 
 type Props = {
   prayerRequests: Array<IPrayerRequest>;
@@ -27,7 +25,6 @@ const PrayerRequestTable = ({
   page,
   setPage,
 }: Props) => {
-
   return (
     <div className="w-full">
       <div className="w-full mt-2 py-3 px-5 flex flex-row justify-start items-center">
@@ -44,9 +41,17 @@ const PrayerRequestTable = ({
             key={index}
             className="w-full mt-2 py-3 rounded-md px-5 border border-gray-700 flex flex-row justify-start items-center gap-1"
           >
-            <div className="w-[25%] truncate text-white hover:text-blue-500 cursor-pointer">{value.title}</div>
-            <div className="w-[25%] truncate text-white hover:text-blue-500 cursor-pointer">{value.isAnonymous ? "Anonymous" : value.author.firstName + " " + value.author.lastName}</div>
-            <div className="w-[20%] truncate text-white hover:text-blue-500 cursor-pointer">{value.author.firstName + " " + value.author.lastName}</div>
+            <div className="w-[25%] truncate text-white hover:text-blue-500 cursor-pointer">
+              {value.title}
+            </div>
+            <div className="w-[25%] truncate text-white hover:text-blue-500 cursor-pointer">
+              {value.isAnonymous
+                ? "Anonymous"
+                : value.author.firstName + " " + value.author.lastName}
+            </div>
+            <div className="w-[20%] truncate text-white hover:text-blue-500 cursor-pointer">
+              {value.author.firstName + " " + value.author.lastName}
+            </div>
             <div className="w-[20%] hidden md:flex truncate text-white hover:text-blue-500 cursor-pointer">
               {moment(value.createdAt).format(DATETIME_FORMAT)}
             </div>

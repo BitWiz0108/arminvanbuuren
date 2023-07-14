@@ -12,6 +12,7 @@ import Transaction from "@/components/Icons/Transaction";
 import ButtonSidebar from "@/components/ButtonSidebar";
 import Mic from "@/components/Icons/Mic";
 import Album from "@/components/Icons/Album";
+import PlayList from "@/components/Icons/PlayList";
 import ThumbUp from "@/components/Icons/ThumbUp";
 import Currency from "@/components/Icons/Currency";
 import Emailtemplate from "@/components/Icons/EmailTemplate";
@@ -100,6 +101,13 @@ const Sidebar = ({ visible, setVisible }: Props) => {
             icon={<Album width={24} height={24} />}
             label="Albums"
             onClick={() => goToLink("/album")}
+          />
+          <ButtonSidebar
+            active={router.pathname == "/playlist"}
+            collapsed={isSidebarCollapsed}
+            icon={<PlayList width={24} height={24} />}
+            label="PlayLists"
+            onClick={() => goToLink("/playlist")}
           />
           <ButtonSidebar
             active={router.pathname == "/music" || router.pathname == "/audio"}
