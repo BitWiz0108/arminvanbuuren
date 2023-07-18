@@ -45,6 +45,7 @@ export default function Music() {
     createMusic,
     updateMusic,
     deleteMusic,
+    addMusicToPlayList,
   } = useMusic();
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -295,7 +296,9 @@ export default function Music() {
           queryParam={queryParams}
           changeQueryParam={changeQueryParam}
           totalCount={totalCount}
-          addPlaylist={(id: number) => {}}
+          addPlaylist={(musicId: number, playListIds: Array<number> | null) => {
+            addMusicToPlayList(musicId, playListIds);
+          }}
           deleteMusic={(id: number) =>
             deleteMusic(id).then((value) => {
               if (value) {

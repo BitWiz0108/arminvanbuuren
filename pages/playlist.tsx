@@ -13,50 +13,36 @@ import usePlayList from "@/hooks/usePlayList";
 
 import { IPlayList } from "@/interfaces/IPlayList";
 import { IMusic } from "@/interfaces/IMusic";
+import PlayListCreateModal from "@/components/PlayListCreateModal";
+import X from "@/components/Icons/X";
 
 export default function PlayList() {
   const { isSignedIn } = useAuthValues();
-  const { isLoading, fetchAllPlayList, createPlayList, deletePlayList } =
-    usePlayList();
+  const {
+    isLoading,
+    fetchAllPlayList,
+    createPlayList,
+    deletePlayList,
+    deleteMusicFromPlayList,
+  } = usePlayList();
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [playLists, setPlayLists] = useState<Array<IPlayList>>([]);
   const [isDetailViewOpened, setIsDetailViewOpened] = useState<boolean>(false);
   const [name, setName] = useState<string>("");
-  const [musics, setMusics] = useState<Array<IMusic>>([]);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<number>(0);
+  const [isPlayListCreateModalVisible, setIsPlayListCreateModalVisible] =
+    useState<boolean>(false);
 
   const clearFields = () => {
     setName("");
   };
-  const onConfirm = () => {
-    /*
-    if ((!isEditing && !imageFile) || !name || !description) {
-      toast.warn("Please type values correctly.");
-      return;
-    }
-    createPlayList(
-      imageFile!,
-      name,
-      description,
-      releaseDate,
-      uploadType,
-      uploadType == UPLOAD_TYPE.FILE
-        ? videoBackgroundFile!
-        : videoBackgroundFileUrl,
-      uploadType == UPLOAD_TYPE.FILE
-        ? videoBackgroundFileCompressed!
-        : videoBackgroundFileCompressedUrl
-    ).then((value) => {
-      if (value) {
-        clearFields();
-        fetchPlayLists();
-        toast.success("Successfully added!");
-      }
-    });
-    setIsDetailViewOpened(false);
-*/
+
+  const onHandleCreatePlayList = async (name: string) => {
+    await createPlayList(name);
+    fetchPlayLists();
   };
+
   const fetchPlayLists = () => {
     fetchAllPlayList().then((value) => {
       if (value) {
@@ -69,7 +55,6 @@ export default function PlayList() {
     if (isSignedIn) {
       fetchPlayLists();
     }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSignedIn]);
 
@@ -78,12 +63,11 @@ export default function PlayList() {
       <div className="w-full flex justify-start items-center p-5">
         <div className="w-40">
           <ButtonSettings
-            label="Add"
+            label="New playlist"
             bgColor="cyan"
             onClick={() => {
               clearFields();
-              setIsEditing(false);
-              setIsDetailViewOpened(true);
+              setIsPlayListCreateModalVisible(true);
             }}
           />
         </div>
@@ -100,10 +84,9 @@ export default function PlayList() {
             })
           }
           updatePlayList={(id: number) => {
-            setIsEditing(true);
-            setSelectedId(id);
-            setMusics(playLists[id].musics);
             const index = playLists.findIndex((album) => album.id == id);
+            setIsEditing(true);
+            setSelectedId(index);
             if (index >= 0) {
               setName(playLists[index].name);
               setIsDetailViewOpened(true);
@@ -116,15 +99,34 @@ export default function PlayList() {
 
   const detailContentViiew = (
     <div className="relative w-full xl:w-4/5 2xl:w-2/3 flex justify-center items-center p-5">
-      <div className="mt-16 p-5 w-full bg-[#2f363e] flex flex-col space-y-5 rounded-lg">
-        <label className="text-3xl px-0 font-semibold">
-          {isEditing ? "Edit" : "Add"} PlayList
-        </label>
+      <div className="mt-16 p-5 w-full flex flex-col space-y-5 rounded-lg">
+        <div className="w-full top-5 px-8 items-center justify-center flex text-primary cursor-pointer">
+          <label className="text-center text-2xl px-0 font-thin">{name}</label>
+          <div className="ml-auto">
+            <X
+              width={24}
+              height={24}
+              onClick={() => setIsDetailViewOpened(false)}
+            />
+          </div>
+        </div>
         <div className="w-full p-5">
-          <PlayListMusicTable
-            musics={musics}
-            deleteMusicFromPlayList={(id: number) => {}}
-          />
+          {playLists[selectedId]?.musics.length > 0 ? (
+            <PlayListMusicTable
+              musics={playLists[selectedId]?.musics}
+              deleteMusicFromPlayList={(musicId: number) => {
+                deleteMusicFromPlayList(playLists[selectedId].id, musicId).then(
+                  () => {
+                    fetchPlayLists();
+                  }
+                );
+              }}
+            />
+          ) : (
+            <div className="w-full h-20 top-10 flex items-center justify-center">
+              <label>There is no music in this playlist.</label>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -139,6 +141,16 @@ export default function PlayList() {
           <div className="loading w-[50px] h-[50px]">
             <RadialProgress width={50} height={50} />
           </div>
+        )}
+
+        {isPlayListCreateModalVisible && (
+          <PlayListCreateModal
+            visible={isPlayListCreateModalVisible}
+            createPlayList={(value: string) => {
+              onHandleCreatePlayList(value);
+            }}
+            setVisible={setIsPlayListCreateModalVisible}
+          />
         )}
       </div>
     </Layout>

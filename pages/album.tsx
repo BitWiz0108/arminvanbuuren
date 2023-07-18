@@ -174,7 +174,6 @@ export default function Album() {
             deleteAlbum(id).then((value) => {
               if (value) {
                 fetchAlbums();
-
                 toast.success("Successfully deleted!");
               }
             })

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import moment from "moment";
 
-import PaginationButtons from "@/components/PaginationButtons/index";
 import Delete from "@/components/Icons/Delete";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import PlayListAddModal from "@/components/PlayListAddModal";
@@ -24,7 +23,9 @@ type Props = {
   deleteMusicFromPlayList: Function;
 };
 
-const MusicTable = ({ musics }: Props) => {
+const MusicTable = ({ musics, deleteMusicFromPlayList }: Props) => {
+  const [tableMusics, setTableMusics] = useState<Array<IMusic>>([]);
+
   const { isSignedIn } = useAuthValues();
   const { fetchAllPlayList } = usePlayList();
 
@@ -38,6 +39,17 @@ const MusicTable = ({ musics }: Props) => {
   const [isPlayListAddModalVisible, setIsPlayListAddModalVisibie] =
     useState<boolean>(false);
   const [playLists, setPlayLists] = useState<Array<IPlayList>>([]);
+
+  const handleDeleteMusic = (index: number) => {
+    // Create a copy of the musics array
+    const updatedMusics = [...musics];
+
+    // Remove the music at the specified index
+    updatedMusics.splice(index, 1);
+
+    // Update the state with the modified musics array
+    setTableMusics(updatedMusics);
+  };
 
   useEffect(() => {
     if (isSignedIn) {
@@ -53,21 +65,15 @@ const MusicTable = ({ musics }: Props) => {
     <div className="w-full">
       <div className="w-full mt-2 py-3 px-5 flex flex-row justify-start items-center">
         <div className="w-[15%] min-w-[100px]">Image</div>
-        <div className="w-[50%] lg:w-[30%] hover:cursor-pointer">
+        <div className="w-[50%] lg:w-[40%] hover:cursor-pointer">
           <span>Title&nbsp;</span>
         </div>
-        <div className="w-[15%] hidden lg:flex hover:cursor-pointer">
-          <span>Album&nbsp;</span>
-        </div>
-        <div className="w-[15%] hidden lg:flex hover:cursor-pointer">
-          <span>Artist&nbsp;</span>
-        </div>
-        <div className="w-[15%] hidden lg:flex hover:cursor-pointer">
+        <div className="w-[35%] hidden lg:flex hover:cursor-pointer">
           <span>Release Date&nbsp;</span>
         </div>
         <div className="w-[10%] min-w-[90px] text-center">Action</div>
       </div>
-      {musics.map((value, index) => {
+      {musics?.map((value, index) => {
         return (
           <div
             key={index}
@@ -84,21 +90,8 @@ const MusicTable = ({ musics }: Props) => {
                 blurDataURL={IMAGE_MD_BLUR_DATA_URL}
               />
             </div>
-            <div className="w-[50%] lg:w-[30%] truncate">{value.title}</div>
-            <div className="w-[15%] hidden lg:flex truncate">
-              {value.albums.map((data, index) => {
-                var albumShow = "";
-                albumShow += data.name;
-                if (index < value.albums.length - 1) {
-                  albumShow += ", ";
-                }
-                return albumShow;
-              })}
-            </div>
-            <div className="w-[15%] hidden lg:flex truncate">
-              {value.singer?.firstName} {value.singer?.lastName}
-            </div>
-            <div className="w-[15%] hidden lg:flex truncate">
+            <div className="w-[50%] lg:w-[40%] truncate">{value.title}</div>
+            <div className="w-[35%] hidden lg:flex truncate">
               {moment(value.releaseDate).format(DATETIME_FORMAT)}
             </div>
             <div className="w-[10%] min-w-[90px] flex justify-center items-center space-x-5">
@@ -118,7 +111,9 @@ const MusicTable = ({ musics }: Props) => {
       {isDeleteConfirmationModalVisible && (
         <DeleteConfirmationModal
           visible={isDeleteConfirmationModalVisible}
-          setDelete={() => {}}
+          setDelete={() => {
+            deleteMusicFromPlayList(deleteMusicId);
+          }}
           setVisible={setIsDeleteConfirmationModalVisible}
         />
       )}

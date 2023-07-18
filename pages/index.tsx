@@ -75,7 +75,6 @@ export default function Signin() {
           try {
             password = decodeURIComponent(window.atob(password));
           } catch (e) {
-            console.log(e);
             password = "";
           }
         }

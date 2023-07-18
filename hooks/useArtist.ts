@@ -76,7 +76,6 @@ const useArtist = () => {
     siteSocialPreviewImageFile: File | null
   ): Promise<IArtist | null> => {
     return new Promise((resolve, reject) => {
-      console.log("!!!!!", artistName);
       setIsLoading(true);
 
       const nullFile = new File([""], "garbage.bin");

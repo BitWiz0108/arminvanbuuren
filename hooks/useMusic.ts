@@ -308,6 +308,36 @@ const useMusic = () => {
     return false;
   };
 
+  const addMusicToPlayList = async (
+    musicId: number,
+    playListIds: Array<number> | null
+  ) => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `${API_BASE_URL}/${API_VERSION}/admin/playlist/item`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          musicId: musicId,
+          playlistIds: playListIds?.toString(),
+        }),
+      }
+    );
+
+    if (response.ok) {
+      setIsLoading(false);
+      return true;
+    }
+
+    setIsLoading(false);
+    return false;
+  };
+
   return {
     isLoading,
     loadingProgress,
@@ -315,6 +345,7 @@ const useMusic = () => {
     createMusic,
     updateMusic,
     deleteMusic,
+    addMusicToPlayList,
   };
 };
 

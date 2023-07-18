@@ -18,7 +18,7 @@ const MultiSelect = ({
   options,
 }: Props) => {
   return (
-    <div className="w-full flex flex-col justify-start items-start my-2 space-y-1">
+    <div className="w-full h-fit flex flex-col justify-start items-start my-2 space-y-1">
       <label htmlFor={label} className="text-sm">
         {label}
       </label>

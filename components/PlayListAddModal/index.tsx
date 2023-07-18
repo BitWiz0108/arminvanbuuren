@@ -34,17 +34,17 @@ const PlayListAddModal = ({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <div className="relative w-full md:w-[540px] max-h-full px-5 md:px-10 pt-20 pb-5 md:pb-10 bg-background rounded-lg overflow-x-hidden overflow-y-auto pr-5">
+          <div className="relative w-full md:w-[540px] max-h-full h-fit px-5 md:px-10 pt-20 pb-5 md:pb-10 bg-background rounded-lg overflow-x-hidden overflow-y-auto pr-5">
             <h1 className="absolute w-full top-12 left-1/2 -translate-x-1/2 text-xl text-center text-primary font-thin">
               Add to playlist
             </h1>
             <div className="absolute top-5 right-5 text-primary cursor-pointer">
               <X width={24} height={24} onClick={() => setVisible(false)} />
             </div>
-            <div className="relative w-full top-5 h-fit flex flex-col justify-start items-center">
+            <div className="relative w-full top-5 h-fit flex-grow flex flex-col justify-start items-center">
               <div className="w-full flex flex-row justify-center items-center space-x-2">
-                <div className="w-full flex flex-col justify-start items-start space-y-5">
-                  <div className="w-full flex flex-col lg:flex-row justify-start items-center mb-5">
+                <div className="w-full flex flex-col justify-start items-start space-y-5 pb-5">
+                  <div className="w-full flex flex-col lg:flex-row justify-start items-center">
                     <MultiSelect
                       defaultValue={playLists.map((playList) => {
                         return {
@@ -75,7 +75,6 @@ const PlayListAddModal = ({
                   <div className="w-full flex flex-row justify-center items-center space-x-10">
                     <ButtonSettings
                       label="Cancel"
-                      bgColor={"1"}
                       onClick={() => setVisible(false)}
                     />
                     <ButtonSettings

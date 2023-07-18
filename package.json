@@ -9,11 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-kinesis-video-signaling": "^3.370.0",
     "@types/node": "18.15.11",
     "@types/react": "18.0.31",
     "@types/react-dom": "18.0.11",
     "@wojtekmaj/react-daterange-picker": "^5.0.2",
-    "aws-sdk": "^2.1361.0",
+    "aws-sdk": "^2.1415.0",
     "chart.js": "^4.2.1",
     "echarts": "^5.4.2",
     "eslint": "8.37.0",

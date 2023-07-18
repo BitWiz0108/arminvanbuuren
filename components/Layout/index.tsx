@@ -43,7 +43,7 @@ const Layout = ({ children }: LayoutProps) => {
     });
     const timeout = setTimeout(() => {
       setFirstLoading(false);
-    }, 2000);
+    }, 5000);
 
     return () => clearTimeout(timeout);
 
